@@ -315,17 +315,14 @@
   text-wrap: balance;
   opacity: 0;
   transform: translateY(10px);
-  filter: blur(4px);
   transition:
     opacity 520ms var(--ease-out),
-    transform 620ms var(--ease-out),
-    filter 520ms var(--ease-out);
+    transform 620ms var(--ease-out);
 }
 
 .generating-line.is-current {
   opacity: 1;
   transform: none;
-  filter: none;
 }
 
 .generating-line.is-past {

@@ -281,11 +281,11 @@ button:disabled {
   animation: none;
 }
 
+/* Opacity and transform only: animated blur crashes or flickers in Safari. */
 @keyframes vt-out {
   to {
     opacity: 0;
     transform: translateY(-10px) scale(0.985);
-    filter: blur(3px);
   }
 }
 
@@ -293,7 +293,6 @@ button:disabled {
   from {
     opacity: 0;
     transform: translateY(18px) scale(0.99);
-    filter: blur(6px);
   }
 }
 
