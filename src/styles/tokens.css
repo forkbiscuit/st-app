@@ -1,0 +1,105 @@
+/*
+  UpDown design tokens.
+  Rich, moody blacks. Temperature carries meaning: ember reds for warming up,
+  tide blues for cooling down. Screens set data-mode="warm" | "cool" and every
+  accent below re-points automatically.
+*/
+
+:root {
+  /* Blacks */
+  --ink-0: #030303;  /* page and screen base */
+  --ink-1: #0c0b0b;  /* raised surfaces */
+  --ink-2: #161414;  /* rows, inputs */
+  --ink-3: #252222;  /* hairlines, dividers */
+  --ink-4: #3a3535;  /* disabled fills */
+
+  /* Text */
+  --paper: #f5f1ec;  /* primary text, 18:1 on ink-0 */
+  --muted: #a7a19b;  /* secondary text, 8:1 on ink-0 */
+  --faint: #77716b;  /* tertiary, decorative only */
+
+  /* Warm: ember */
+  --ember-1: #ff3d24;
+  --ember-2: #ff8a3a;
+  --ember-text: #ff7a5c; /* ember tuned for text on black, 8:1 */
+  --ember-deep: #3a0a04;
+
+  /* Cool: tide */
+  --tide-1: #2f6dff;
+  --tide-2: #52d4ff;
+  --tide-text: #7fb3ff; /* tide tuned for text on black, 9.6:1 */
+  --tide-deep: #031538;
+
+  /* Neutral accent for screens before a mode is chosen */
+  --neutral-1: #e9e3dc;
+  --neutral-2: #ffffff;
+
+  /* Active accent (re-pointed per mode) */
+  --accent-1: var(--neutral-1);
+  --accent-2: var(--neutral-2);
+  --accent-text: var(--paper);
+  --accent-deep: #141414;
+  --on-accent: #050505;
+
+  /* Type: one family, three widths */
+  --font: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
+  --wide: 125%;      /* display headings */
+  --normal: 100%;    /* body */
+  --narrow: 62%;     /* timer numerals */
+
+  --t-12: 0.75rem;
+  --t-14: 0.875rem;
+  --t-16: 1rem;
+  --t-18: 1.125rem;
+  --t-20: 1.25rem;
+  --t-28: 1.75rem;
+  --t-36: 2.25rem;
+  --t-timer: 7.5rem;
+
+  /* Space (4pt base) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --gutter: 20px;
+
+  /* Shape: radius encodes size, not decoration */
+  --r-chip: 999px;
+  --r-row: 14px;
+  --r-tile: 22px;
+  --r-button: 18px;
+  --r-phone: 46px;
+
+  /* Touch: fat buttons, generous targets */
+  --hit: 48px;
+  --button-h: 64px;
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/*
+  Tokens built from the accent must be declared wherever the accent changes,
+  otherwise they resolve once at :root and keep the neutral colours.
+*/
+:root,
+[data-mode] {
+  --accent-gradient: linear-gradient(100deg, var(--accent-1), var(--accent-2));
+}
+
+[data-mode='warm'] {
+  --accent-1: var(--ember-1);
+  --accent-2: var(--ember-2);
+  --accent-text: var(--ember-text);
+  --accent-deep: var(--ember-deep);
+}
+
+[data-mode='cool'] {
+  --accent-1: var(--tide-1);
+  --accent-2: var(--tide-2);
+  --accent-text: var(--tide-text);
+  --accent-deep: var(--tide-deep);
+}
