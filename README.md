@@ -61,7 +61,7 @@ React 18 + TypeScript + Vite. No router or state library; one reducer holds the 
 
 Colour carries meaning: ember reds for warm-ups, tide blues for cool-downs. The phone and anything inside it gets `data-mode="warm" | "cool"`, which re-points `--accent-1`, `--accent-2`, `--accent-text` and `--accent-deep`. Components only ever use the `--accent-*` tokens. Tokens derived from the accent (like `--accent-gradient`) are declared on `:root, [data-mode]` so they recompute per mode.
 
-Titles are Instrument Serif; body copy, buttons and labels are Archivo. The timer uses condensed Archivo because its digits are fixed-width, so the countdown doesn't jitter.
+Titles are Forum; body copy, buttons and labels are Archivo. The timer uses condensed Archivo because its digits are fixed-width, so the countdown doesn't jitter.
 
 Screen changes run inside a View Transition: `go()` in `App.tsx` wraps any action that changes the screen or the current movement, and `base.css` styles the crossfade. Browsers without the API, and people who prefer reduced motion, get a simple fade-in or an instant change.
 
@@ -123,4 +123,4 @@ On the routine screen only the movement list scrolls (`.routine-scroll`); the ti
 
 ## Credits
 
-Instrument Serif and Archivo (SIL Open Font License) via Fontsource. Material Symbols Rounded (Apache 2.0) via the `material-symbols` package. Drag and drop by dnd-kit (MIT). React and Vite (MIT). No templates or starter projects were used.
+Forum and Archivo (SIL Open Font License) via Fontsource. Material Symbols Rounded (Apache 2.0) via the `material-symbols` package. Drag and drop by dnd-kit (MIT). React and Vite (MIT). No templates or starter projects were used.

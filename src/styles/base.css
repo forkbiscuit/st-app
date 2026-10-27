@@ -89,13 +89,13 @@ button:disabled {
 
 /* ---------- Type ---------- */
 
-/* Titles: Instrument Serif. It only comes in one weight, so hierarchy is size. */
+/* Titles: Forum. It only comes in one weight, so hierarchy is size. */
 .display {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: var(--t-44);
-  line-height: 1;
-  letter-spacing: -0.01em;
+  font-size: var(--t-36);
+  line-height: 1.02;
+  letter-spacing: -0.005em;
   text-wrap: balance;
 }
 

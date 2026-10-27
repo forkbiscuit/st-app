@@ -54,7 +54,13 @@ export default function App() {
     }
     doc.startViewTransition(() => flushSync(() => dispatch(action)));
   }, []);
-  const mode = NEUTRAL.includes(state.screen) ? undefined : (state.routine?.mode ?? state.mode ?? undefined);
+  // The picker follows the mode just chosen; later screens follow the routine.
+  // (After a warm-up, state.routine is still the old warm routine while picking a cool-down.)
+  const mode = NEUTRAL.includes(state.screen)
+    ? undefined
+    : state.screen === 'activity'
+      ? (state.mode ?? undefined)
+      : (state.routine?.mode ?? state.mode ?? undefined);
 
   // Persist bookmarks and reminders whenever they change (not on first load).
   const firstRun = useRef(true);

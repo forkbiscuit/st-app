@@ -41,9 +41,9 @@
   --accent-deep: #141414;
   --on-accent: #050505;
 
-  /* Type: Instrument Serif for titles, Archivo for everything you read or tap.
+  /* Type: Forum for titles, Archivo for everything you read or tap.
      The timer keeps condensed Archivo for its fixed-width digits. */
-  --serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --serif: 'Forum', 'Iowan Old Style', Georgia, serif;
   --font: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
   --normal: 100%;    /* body */
   --narrow: 62%;     /* timer numerals */
@@ -56,7 +56,6 @@
   --t-28: 1.75rem;
   --t-36: 2.25rem;
   --t-44: 2.75rem;
-  --t-52: 3.25rem;
   --t-timer: 7.5rem;
 
   /* Space (4pt base) */
@@ -91,6 +90,9 @@
 :root,
 [data-mode] {
   --accent-gradient: linear-gradient(100deg, var(--accent-1), var(--accent-2));
+  /* Errors take the mode's own colour so a cool-down never shows red;
+     the error icon carries the meaning. */
+  --error: var(--accent-text);
 }
 
 [data-mode='warm'] {

@@ -24,17 +24,16 @@ import { Icon } from './Icon';
 interface Props {
   steps: ResolvedStep[];
   onReorder: (uids: string[]) => void;
-  onMove: (uid: string, by: -1 | 1) => void;
   onRemove: (uid: string) => void;
 }
 
 /**
- * Wireframe 7's movement list. Three ways to arrange:
+ * Wireframe 7's movement list. Two ways to reorder:
  *  - drag the handle (mouse or touch)
  *  - focus the handle, Space to pick up, arrows to move, Space to drop
- *  - open a row's "…" menu and use Move up / Move down / Remove
+ * A row's "…" menu holds Remove.
  */
-export function RoutineList({ steps, onReorder, onMove, onRemove }: Props) {
+export function RoutineList({ steps, onReorder, onRemove }: Props) {
   const [openUid, setOpenUid] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -81,7 +80,6 @@ export function RoutineList({ steps, onReorder, onMove, onRemove }: Props) {
               count={steps.length}
               open={openUid === s.uid}
               onToggle={() => setOpenUid(openUid === s.uid ? null : s.uid)}
-              onMove={(by) => onMove(s.uid, by)}
               onRemove={() => {
                 setOpenUid(null);
                 onRemove(s.uid);
@@ -100,7 +98,6 @@ function Row({
   count,
   open,
   onToggle,
-  onMove,
   onRemove,
 }: {
   step: ResolvedStep;
@@ -108,7 +105,6 @@ function Row({
   count: number;
   open: boolean;
   onToggle: () => void;
-  onMove: (by: -1 | 1) => void;
   onRemove: () => void;
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
@@ -153,13 +149,7 @@ function Row({
       </div>
       {open && (
         <div className="move-actions" id={menuId}>
-          <button type="button" className="chip-btn" onClick={() => onMove(-1)} disabled={index === 0}>
-            <Icon name="keyboard_arrow_up" /> Move up
-          </button>
-          <button type="button" className="chip-btn" onClick={() => onMove(1)} disabled={index === count - 1}>
-            <Icon name="keyboard_arrow_down" /> Move down
-          </button>
-          <button type="button" className="chip-btn chip-danger" onClick={onRemove}>
+          <button type="button" className="chip-btn" onClick={onRemove}>
             <Icon name="delete" /> Remove
           </button>
         </div>

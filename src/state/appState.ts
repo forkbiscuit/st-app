@@ -76,7 +76,6 @@ export type Action =
   | { type: 'OPEN_BOOKMARKS' }
   | { type: 'SET_LENGTH'; length: Length }
   | { type: 'REORDER'; visibleUids: string[] }
-  | { type: 'MOVE'; uid: string; by: -1 | 1 }
   | { type: 'REMOVE'; uid: string }
   | { type: 'RESTORE_ALL' }
   | { type: 'UNDO' }
@@ -209,16 +208,6 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'REORDER': {
       if (!state.routine) return state;
       return withRoutine(state, applyVisibleOrder(state.routine, action.visibleUids));
-    }
-
-    case 'MOVE': {
-      if (!state.routine) return state;
-      const uids = resolveRoutine(state.routine).map((s) => s.uid);
-      const from = uids.indexOf(action.uid);
-      const to = from + action.by;
-      if (from < 0 || to < 0 || to >= uids.length) return state;
-      [uids[from], uids[to]] = [uids[to], uids[from]];
-      return withRoutine(state, applyVisibleOrder(state.routine, uids));
     }
 
     case 'REMOVE': {

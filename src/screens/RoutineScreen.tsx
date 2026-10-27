@@ -81,7 +81,6 @@ export function RoutineScreen({ state, dispatch }: { state: AppState; dispatch: 
         <RoutineList
           steps={steps}
           onReorder={(visibleUids) => dispatch({ type: 'REORDER', visibleUids })}
-          onMove={(uid, by) => dispatch({ type: 'MOVE', uid, by })}
           onRemove={(uid) => dispatch({ type: 'REMOVE', uid })}
         />
       ) : (

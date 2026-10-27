@@ -4,7 +4,7 @@
 
 .home-title {
   margin: var(--s-6) 0 var(--s-5);
-  font-size: var(--t-52);
+  font-size: var(--t-44);
 }
 
 .mode-tiles {
@@ -76,9 +76,9 @@
 .mode-tile-label {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 3.5rem;
-  line-height: 0.95;
-  letter-spacing: -0.015em;
+  font-size: 2.875rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
 }
 
 .mode-tile-sub {
@@ -198,7 +198,7 @@
 
 .picker .display {
   margin: var(--s-2) 0 var(--s-5);
-  font-size: var(--t-52);
+  font-size: var(--t-44);
 }
 
 .activity-grid {
@@ -236,9 +236,9 @@
 .activity-label {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 2rem;
-  line-height: 0.95;
-  letter-spacing: -0.005em;
+  font-size: 1.625rem;
+  line-height: 1;
+  letter-spacing: 0;
 }
 
 .activity-group {
@@ -304,8 +304,8 @@
   max-width: 310px;
   min-height: 2.2em;
   font-family: var(--serif);
-  font-size: var(--t-36);
-  line-height: 1.05;
+  font-size: var(--t-28);
+  line-height: 1.1;
 }
 
 /* All lines share one grid cell and crossfade. */
@@ -634,9 +634,9 @@
 .movement-name {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: var(--t-44);
-  line-height: 1;
-  letter-spacing: -0.01em;
+  font-size: var(--t-36);
+  line-height: 1.02;
+  letter-spacing: -0.005em;
   text-wrap: balance;
   max-width: 320px;
 }
@@ -747,7 +747,7 @@
 
 .done-text {
   font-family: var(--serif);
-  font-size: var(--t-36);
+  font-size: var(--t-28);
   line-height: 1;
 }
 
@@ -812,7 +812,7 @@
 }
 
 .complete .display {
-  font-size: var(--t-44);
+  font-size: var(--t-36);
 }
 
 .complete-stats {
@@ -977,9 +977,9 @@
 }
 
 .ready-title {
-  font-size: 4rem;
-  line-height: 0.95;
-  letter-spacing: -0.015em;
+  font-size: 3.25rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
 }
 
 .ready-sub {
@@ -1037,7 +1037,7 @@
 /* Short screens: tighten the fixed header so the list keeps room. */
 @media (max-height: 700px) {
   .routine .display {
-    font-size: var(--t-36);
+    font-size: var(--t-28);
   }
 
   .routine-head {
