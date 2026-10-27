@@ -1,126 +1,90 @@
 # UpDown
 
-Activity-specific warm-ups and cool-downs. Pick what you're doing, get a short routine built for the muscles it uses, arrange it, then follow it one movement at a time.
+Activity-specific warm-ups and cool-downs. Pick what you're doing, get a short routine for the muscles it uses, arrange it, then follow it one movement at a time.
 
-Prototype for the Specular Theory Senior Product Designer work sample (Option C: creative configuration tool).
+**Live prototype:** https://forkbiscuit.github.io/st-app/ (works on phone and desktop, no login)
 
-- **User:** someone about to go surfing, skiing, running, hiking or lifting, standing at the car or the gym with a phone in one hand.
-- **Task:** get properly warmed up (or cooled down) for *this* activity in 5–15 minutes, without planning it themselves.
+Specular Theory Senior Product Designer work sample, Option C (creative configuration tool).
 
-## Run it
+- **User:** someone about to surf, ski, run, hike or lift, phone in one hand.
+- **Task:** warm up (or cool down) properly for *this* activity in 5–15 minutes, without planning it.
 
-Requires Node 20.19+ or 22.12+ (Vite 8). No accounts, keys or services.
+## Run it locally
+
+Node 20.19+ or 22.12+. No accounts, keys or services.
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
+npm run dev      # http://localhost:5173
+npm run build    # type-check + static build to dist/ (deployed to Pages on push)
 ```
 
-`npm run build` type-checks and writes a static site to `dist/`; `npm run preview` serves it. The build uses relative paths, so `dist/` works from any static host (including GitHub Pages; see `.github/workflows/deploy.yml`).
-
-## Primary workflow (about 2 minutes)
+## Primary workflow
 
 1. **Warm up** → **Surf** → **Build my warm-up**.
-2. On the routine: switch **Session length** between Quick, Standard and Long and watch the list and total time change. Drag a move by its handle (or open its **…** menu) to reorder or remove it. **Undo** is in the toast.
-3. Tap the **bookmark** icon. The routine, with your order and length, is now under the bookmarks icon on the first screens.
-4. **Start warm-up.** Timed moves count down while the screen edge and the Next button fill; two-sided moves cue the switch at half time. Rep moves show the count and a Done button.
-5. Rate it. Thumbs down asks what was off. Then **Finish** sets a (simulated) reminder for the matching cool-down.
+2. Switch **Session length** (Quick / Standard / Long) and watch the list and time update. Drag a move's handle to reorder; **…** → **Remove** (with Undo).
+3. Tap the **bookmark** icon. Reopen it later from the bookmarks icon on the first screens.
+4. **Start warm-up.** Timers fill the screen edge and the Next button; two-sided moves cue the switch.
+5. Rate it, then **Finish** sets a simulated reminder for the matching cool-down.
 
-On desktop, the reviewer controls beside the phone can run timers at 10× (**Fast timers**) and show the bookmark error state (**Block browser storage**). On a phone the app is full screen with no reviewer controls.
+On desktop, reviewer controls beside the phone add **Fast timers** (10×) and **Block browser storage** (shows the save error).
 
-## How it's built
+## Code map
 
-React 18 + TypeScript + Vite. No router or state library; one reducer holds the app.
+React 18 + TypeScript + Vite. One reducer, no router or state library.
 
-| Area | Location | Notes |
-| --- | --- | --- |
-| App shell, screen switch, persistence | `src/App.tsx` | Maps `state.screen` to a screen component. Saves bookmarks and reminders when they change. |
-| State + actions | `src/state/appState.ts` | `AppState`, every `Action`, and the `reducer`. Screen ids are commented with their wireframe numbers. |
-| Storage | `src/state/storage.ts` | `localStorage` wrapped in try/catch; returns `false` when a write fails. |
-| Routine data | `src/data/activities.ts` | Six activities × warm-up and cool-down, with dose, "why" and `core` flag per step. |
-| Exercise library | `src/data/exercises.ts` | Name, how-to cue and demo animation type, shared across activities. |
-| Types | `src/data/types.ts` | `Activity`, `RoutineStep`, `Dose`, `Routine`, `SavedRoutine`, etc. |
-| Routine logic | `src/lib/routine.ts` | Length scaling, time estimates, dose labels. Pure functions. |
-| Timer | `src/lib/useTimer.ts` | Pausable rAF timer with a speed multiplier. |
-| Screens | `src/screens/*` | `Home` (1), `ActivityPicker` (2–3), `Generating` (5–6), `RoutineScreen` (7), `Player` (8–11), `Complete` (12–14), `Ready` (15), `Bookmarks`. |
-| Components | `src/components/*` | `Button`, `RoutineList` (dnd-kit), `LengthControl`, `MotionDemo`, `PerimeterProgress`, `Toast`, etc. |
-| Styling | `src/styles/` | `tokens.css` (colour, type, space, radius), `base.css` (reset, phone frame), `components.css`, `screens.css`. |
+| What | Where |
+| --- | --- |
+| State, actions, reducer | `src/state/appState.ts` (screens commented with wireframe numbers) |
+| App shell, view transitions, persistence | `src/App.tsx` |
+| Bookmark storage (`localStorage`, fails safely) | `src/state/storage.ts` |
+| Routines per activity; exercise library; types | `src/data/activities.ts`, `exercises.ts`, `types.ts` |
+| Session length, time estimates, labels | `src/lib/routine.ts` |
+| Screens 1–15 | `src/screens/` |
+| Shared components | `src/components/` |
+| Tokens and styles | `src/styles/tokens.css`, `base.css`, `components.css`, `screens.css` |
 
-### Data model
+**Data model.** An activity has a standard `warm` and `cool` list of steps (exercise, dose, why, `core`). A routine is the user's copy: `{ activity, mode, length, items[] }`, each item `{ uid, stepId, removed }`. Session length is applied when the routine is read (`resolveRoutine`), not saved into it, so switching lengths never loses the user's order or removals. Quick keeps `core` steps; Long uses the top of each range. Bookmarks are full routine snapshots.
 
-- An **activity** has a standard `warm` and `cool` list of `RoutineStep`s. Each step points at an exercise and supplies its `dose` (time, reps or sets, optionally per side), its purpose (`why`) and whether it's `core`.
-- A **routine** is the user's editable copy: `{ activity, mode, length, items }`, where each item is `{ uid, stepId, removed }`. Order lives in `items`; removing a move flags it rather than deleting it, so Undo and "Restore all moves" are trivial.
-- **Session length is applied when the routine is read, not stored into it.** `resolveRoutine(routine, length)` filters and scales the steps, so switching Quick → Long → Quick never loses the user's order or removals.
-  - *Quick:* core steps only; pulse raisers (walking, rowing) cut to 1 min.
-  - *Standard:* every step at the low end of the reference range.
-  - *Long:* top of each range; otherwise pulse raisers +1 min, holds +15 sec, reps +25%.
-- **Bookmarks** are full routine snapshots (`SavedRoutine`). Opening one links it by id, so later edits update the bookmark.
-- **Time estimates** assume 3 sec per rep unless a step sets its own, doubled for per-side moves, plus 8 sec between moves. They're shown as "about N min".
+**Styling.** Colour carries meaning: ember for warm-ups, tide blue for cool-downs. `data-mode` on the phone re-points the `--accent-*` tokens, and components only use those. Titles are Forum; everything else is Archivo; the timer uses condensed Archivo for fixed-width digits.
 
-### Styling
-
-Colour carries meaning: ember reds for warm-ups, tide blues for cool-downs. The phone and anything inside it gets `data-mode="warm" | "cool"`, which re-points `--accent-1`, `--accent-2`, `--accent-text` and `--accent-deep`. Components only ever use the `--accent-*` tokens. Tokens derived from the accent (like `--accent-gradient`) are declared on `:root, [data-mode]` so they recompute per mode.
-
-Titles are Forum; body copy, buttons and labels are Archivo. The timer uses condensed Archivo because its digits are fixed-width, so the countdown doesn't jitter.
-
-Screen changes run inside a View Transition: `go()` in `App.tsx` wraps any action that changes the screen or the current movement, and `base.css` styles the crossfade. Browsers without the API, and people who prefer reduced motion, get a simple fade-in or an instant change.
-
-On the routine screen only the movement list scrolls (`.routine-scroll`); the title, session length and Start button stay fixed. On phones the page itself never scrolls.
-
-## Where to make a typical change
-
-- **Add or edit a routine:** `src/data/activities.ts`. Add a step with an existing exercise id; new exercises go in `src/data/exercises.ts`.
-- **Add an activity:** add an `ActivityId` in `types.ts` and an entry in `ACTIVITIES`; the picker grid, generator copy and ready screen pick it up.
-- **Change how session length works:** `scaleDose` and `resolveRoutine` in `src/lib/routine.ts`.
-- **Change a colour or the type scale:** `src/styles/tokens.css`.
-- **Add a screen:** add it to `Screen` and the reducer in `appState.ts`, then to `SCREENS` in `App.tsx`.
+**Typical changes.** Edit routines in `activities.ts`. Add an activity by adding an `ActivityId` and an `ACTIVITIES` entry. Change length rules in `scaleDose`. Change colour or type in `tokens.css`.
 
 ## What works, what's mocked
 
-**Works:** the full flow above; reorder by drag, keyboard or menu; remove with undo; restore all; session length; timers with pause, skip and side switch; ratings with reasons (Too easy and Too difficult can't both be picked); bookmarks that persist across reloads; feedback that adjusts "Give me another" (Too long → shorter, Too easy → longer, Too repetitive → shuffled).
+**Works:** the full flow, reorder (drag or keyboard), remove/undo, session length, timers with pause/skip/side switch, ratings, bookmarks that persist, and feedback that adjusts "Give me another".
 
-**Mocked:**
-- **Generating** is a timed animation (about 3 seconds, not affected by Fast timers). Routines come from the fixed reference data, not a model. The free-text "Add a workout" field from the flowchart isn't built.
-- **Reminders** are stored and shown on the home screen but never fire. There are no notifications.
-- **Demo animations** are abstract loops per movement pattern (stride, swing, press…), standing in for real exercise video.
-- **Equipment** questions from the flowchart are not built. Gym routines assume a band; one hiking cool-down move is marked optional because it needs a ball.
+**Mocked:** the build step (a 3-second animation over fixed reference routines, not a model); reminders (shown, never sent); demo animations (abstract loops in place of exercise video). The flowchart's equipment question and free-text activity field aren't built.
 
-**Data assumptions:** the routine content is general fitness guidance, not medical advice. Ski, Run, Hike, Upper-body and Lower-body routines follow reference routines compiled from public sources (Harvard Health, REI, FIS, PubMed Central). Surf was written to match them (8–12 min warm-up, 5–10 min cool-down, shoulders, back and hips).
+**Data:** general fitness guidance, not medical advice. Ski, Run, Hike and gym routines come from reference routines compiled from public sources (Harvard Health, REI, FIS, PubMed Central); Surf was written to match.
 
-## Accessibility
+**Accessibility:** full keyboard use (arrow keys in tile and length groups; Space and arrows to reorder, with announcements), 8:1+ text contrast, visible focus, announced side switches, reduced motion respected. **Gaps:** the countdown isn't read every second; touch reordering needs the handle.
 
-- Every control is reachable and operable by keyboard. Activity tiles and session lengths are radio groups with arrow-key support. Moves reorder by keyboard (Space to pick up, arrows, Space to drop) with screen-reader announcements, or through Move up / Move down.
-- Text contrast is 8:1 or better for body and accent text; button labels on the accent gradients are at least 4.6:1. Focus is a 2.5px outline that components can't hide.
-- Movement changes move focus to the new movement name; side switches and "time's up" are announced. Reduced-motion settings stop the demo loops and transitions.
-- Unavailable buttons stay focusable and explain why when pressed, rather than silently doing nothing.
-
-**Known gaps:** the timer's countdown digits aren't announced every second (by design; it would be noisy), so screen-reader users hear the start, the switch and the end only. Drag-and-drop on touch relies on the handle; there's no long-press on the row. Colour is reinforced by labels and icons everywhere except the progress segments in the player, which also show "N of M" as text.
-
-## Before production
-
-1. **Subset the icon font.** Material Symbols is shipped whole (5.4 MB); switch to codepoints for the ~30 icons used, or to inline SVGs.
-2. **Real exercise media** in place of `MotionDemo`, with captions.
-3. **Notifications** for reminders (Web Push or native), with permission prompts and quiet hours.
-4. **Server-side bookmarks** behind an account, keeping `localStorage` as an offline cache.
-5. **Content review** of every routine by a qualified coach or physio; add contraindication notes.
-6. **Tests:** unit tests for `routine.ts` and the reducer, plus a Playwright run of the primary workflow.
+**Before production:** subset the 5.4 MB icon font, real exercise media, real notifications, account-backed bookmarks, a coach or physio review of every routine, and tests for `routine.ts`, the reducer and the main flow.
 
 ## Design and AI process
 
-> **To do (Robert):** fill in time per section and the AI correction you want to show. The facts below are a starting point.
+**Decisions.** Temperature as the colour system, so warm-up and cool-down read at a glance. One movement per screen with big buttons, because you're mid-stretch. Session length that never undoes your edits.
 
-- **Key decisions:** temperature as the colour system, so you can tell a warm-up from a cool-down at a glance; one movement per screen with fat buttons, because you're using it mid-stretch; session length applied at read time so it never fights the user's edits.
-- **Tradeoff:** routines come from fixed, reviewed reference data rather than a model generating them, which keeps the advice safe and predictable but less personal. The "generating" step is presented honestly as a short build-up, not as AI.
-- **AI tools:** Claude, connected to the FigJam board through the Figma connector, read the numbered wireframes and flowchart and built the React prototype, handoff and verification screenshots.
-- **AI output corrected:** _(e.g. the first read of the flow included wireframe 4, a leftover from an earlier design; or the reference routines that replaced generated content.)_
+**Tradeoff.** Routines come from fixed, sourced data rather than being generated, which makes them safer and predictable but less personal.
+
+**AI tools.** Claude, connected to the FigJam board through the Figma connector, read the numbered wireframes and flowchart, built the prototype, deployed it and verified it with automated screenshots.
+
+**What I corrected:**
+- **UI overhaul.** The first build worked but could be better. I moved titles to a serif (Forum), slowed the build screen and added smooth transitions, kept the routine header fixed so only the list scrolls, made mobile full screen, and restyled toasts to match the app. Checked on my phone.
+- **Colour leak.** After a cool-down, the warm-up picker stayed blue. I caught it on device; the fix makes the picker follow the mode just chosen. Verified by a pixel scan of every screen in both directions.
+- **Screen 4.** AI's first read of the flow included a leftover wireframe. I cut it.
+- **Routine content.** I replaced AI-written routines with sourced reference routines.
+
+**Time (approximate):**
 
 | Section | Time |
 | --- | --- |
-| Planning and wireframes | _to fill_ |
-| Prototype build | _to fill_ |
+| Wireframes and flowchart (FigJam) | 90 min |
+| Planning with AI (brief, board, questions) | 25 min |
+| Prototype build | 25 min |
+| UI overhaul and fixes | 40 min |
+| Documentation and verification | 15 min |
 | Graphic | _to fill_ |
-| Documentation and verification | _to fill_ |
 
-## Credits
-
-Forum and Archivo (SIL Open Font License) via Fontsource. Material Symbols Rounded (Apache 2.0) via the `material-symbols` package. Drag and drop by dnd-kit (MIT). React and Vite (MIT). No templates or starter projects were used.
+**Credits.** Forum and Archivo (SIL OFL) via Fontsource; Material Symbols Rounded (Apache 2.0); dnd-kit, React, Vite (MIT). No templates or starter projects.
