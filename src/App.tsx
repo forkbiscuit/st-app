@@ -27,11 +27,19 @@ const SCREENS = {
 /** Screens that don't belong to a warm-up or cool-down stay neutral. */
 const NEUTRAL: Screen[] = ['home', 'bookmarks'];
 
-type ViewTransitionDoc = Document & { startViewTransition?: (update: () => void) => unknown };
+type ViewTransitionDoc = Document & {
+  startViewTransition?: (update: () => void) => { finished: Promise<void> };
+};
 
-/** True when an action moves to a different screen or a different movement in the player. */
-function changesView(prev: AppState, next: AppState) {
-  return prev.screen !== next.screen || prev.run?.index !== next.run?.index;
+/**
+ * Which transition an action needs, if any:
+ * - 'slide' when the player moves to the next movement (pushes right to left)
+ * - 'fade' when the screen changes
+ */
+function transitionFor(prev: AppState, next: AppState): 'slide' | 'fade' | null {
+  if (prev.screen === 'player' && next.screen === 'player' && prev.run?.index !== next.run?.index) return 'slide';
+  if (prev.screen !== next.screen) return 'fade';
+  return null;
 }
 
 export default function App() {
@@ -48,11 +56,18 @@ export default function App() {
   const go = useCallback((action: Action) => {
     const doc = document as ViewTransitionDoc;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!doc.startViewTransition || reduce || !changesView(stateRef.current, reducer(stateRef.current, action))) {
+    const kind = transitionFor(stateRef.current, reducer(stateRef.current, action));
+    if (!doc.startViewTransition || reduce || !kind) {
       dispatch(action);
       return;
     }
-    doc.startViewTransition(() => flushSync(() => dispatch(action)));
+    // base.css picks the animation from this attribute.
+    const root = document.documentElement;
+    root.dataset.vt = kind;
+    const vt = doc.startViewTransition(() => flushSync(() => dispatch(action)));
+    vt.finished.finally(() => {
+      if (root.dataset.vt === kind) delete root.dataset.vt;
+    });
   }, []);
   // The picker follows the mode just chosen; later screens follow the routine.
   // (After a warm-up, state.routine is still the old warm routine while picking a cool-down.)

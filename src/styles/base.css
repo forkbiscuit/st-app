@@ -281,6 +281,52 @@ button:disabled {
   animation: none;
 }
 
+/*
+  Next movement in the player: a horizontal push. The new movement slides in
+  from the right as the old one leaves to the left. The player's top bar and
+  the timer border have their own names, so the bar stays put while its
+  progress updates, and the finished border fades out in place.
+*/
+.player-top {
+  view-transition-name: player-top;
+}
+
+.perimeter {
+  view-transition-name: perimeter;
+}
+
+:root[data-vt='slide']::view-transition-old(screen) {
+  animation: vt-slide-out 460ms var(--ease-soft) both;
+}
+
+:root[data-vt='slide']::view-transition-new(screen) {
+  animation: vt-slide-in 460ms var(--ease-soft) both;
+}
+
+/* Keep the sliding screens inside the phone (snapshots render above the page). */
+::view-transition-group(screen) {
+  overflow: clip;
+  border-radius: var(--r-phone);
+}
+
+@media (max-width: 760px) {
+  ::view-transition-group(screen) {
+    border-radius: 0;
+  }
+}
+
+@keyframes vt-slide-out {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes vt-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
 /* Opacity and transform only: animated blur crashes or flickers in Safari. */
 @keyframes vt-out {
   to {
