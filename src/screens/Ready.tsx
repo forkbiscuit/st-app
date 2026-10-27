@@ -7,7 +7,7 @@ import type { Action, AppState } from '../state/appState';
 
 /**
  * Wireframe 15: send-off. Finish sets a (mocked) reminder for the opposite
- * routine; "Give me another" builds a fresh one, nudged by any feedback.
+ * routine; "Do another" builds a fresh one, nudged by any feedback.
  */
 export function Ready({ state, dispatch }: { state: AppState; dispatch: (a: Action) => void }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -29,15 +29,15 @@ export function Ready({ state, dispatch }: { state: AppState; dispatch: (a: Acti
           {warm ? `You’re ready to ${activity.verb}.` : 'Nice work. Rest up.'}
         </h1>
         <p className="ready-sub">
-          {warm ? 'See you afterwards for your cool-down.' : 'Drink some water, eat something good and get some sleep.'}
+          {warm ? 'See you afterwards for your cool‑down.' : 'Drink some water, eat something good and get some sleep.'}
         </p>
       </div>
 
       <div className="screen-actions stacked">
-        <Button variant="secondary" icon="replay" onClick={() => dispatch({ type: 'ANOTHER' })}>
-          Give me another {word}
+        <Button variant="secondary" onClick={() => dispatch({ type: 'ANOTHER' })}>
+          Do another {word}
         </Button>
-        <Button icon="notifications_active" onClick={() => dispatch({ type: 'FINISH', now: Date.now() })}>
+        <Button onClick={() => dispatch({ type: 'FINISH', now: Date.now() })}>
           Finish
         </Button>
         <p className="actions-caption">

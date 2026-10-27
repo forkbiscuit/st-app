@@ -46,13 +46,13 @@ React 18 + TypeScript + Vite. One reducer, no router or state library.
 
 **Data model.** An activity has a standard `warm` and `cool` list of steps (exercise, dose, why, `core`). A routine is the user's copy: `{ activity, mode, length, items[] }`, each item `{ uid, stepId, removed }`. Session length is applied when the routine is read (`resolveRoutine`), not saved into it, so switching lengths never loses the user's order or removals. Quick keeps `core` steps; Long uses the top of each range. Bookmarks are full routine snapshots.
 
-**Styling.** Colour carries meaning: ember for warm-ups, tide blue for cool-downs. `data-mode` on the phone re-points the `--accent-*` tokens, and components only use those. Titles are Forum; everything else is Archivo; the timer uses condensed Archivo for fixed-width digits.
+**Styling.** Colour carries meaning: ember for warm-ups, tide blue for cool-downs. `data-mode` on the phone re-points the `--accent-*` tokens, and components only use those. Titles are Forum; everything else is Archivo; the timer uses condensed Archivo for fixed-width digits. Call-to-action buttons are text only, centred, with no icons; only Skip and small controls carry icons. Timer visuals avoid CSS transitions and filters on anything updated every frame, which froze and flickered in iPhone Safari.
 
 **Typical changes.** Edit routines in `activities.ts`. Add an activity by adding an `ActivityId` and an `ACTIVITIES` entry. Change length rules in `scaleDose`. Change colour or type in `tokens.css`.
 
 ## What works, what's mocked
 
-**Works:** the full flow, reorder (drag or keyboard), remove/undo, session length, timers with pause/skip/side switch, ratings, bookmarks that persist, and feedback that adjusts "Give me another".
+**Works:** the full flow, reorder (drag or keyboard), remove/undo, session length, timers with pause/skip/side switch, ratings, bookmarks that persist, and feedback that adjusts "Do another warm-up" or "Do another cool-down".
 
 **Mocked:** the build step (a 3-second animation over fixed reference routines, not a model); reminders (shown, never sent); demo animations (abstract loops in place of exercise video). The flowchart's equipment question and free-text activity field aren't built.
 
@@ -71,7 +71,8 @@ React 18 + TypeScript + Vite. One reducer, no router or state library.
 **AI tools.** Claude, connected to the FigJam board through the Figma connector, read the numbered wireframes and flowchart, built the prototype, deployed it and verified it with automated screenshots.
 
 **What I corrected:**
-- **UI overhaul.** The first build worked but could be better. I moved titles to a serif (Forum), slowed the build screen and added smooth transitions, kept the routine header fixed so only the list scrolls, made mobile full screen, and restyled toasts to match the app. Checked on my phone.
+- **UI overhaul.** The first build worked but could be better. I moved titles to a serif (Forum), slowed the build screen and added smooth transitions, kept the routine header fixed so only the list scrolls, made mobile full screen, restyled toasts to match the app, and stripped icons from the main buttons so their labels sit centred. Checked on my phone.
+- **iPhone Safari.** On my phone the timer's border didn't move and the Next button flickered. Reproduced in WebKit and fixed. Verified frame by frame in WebKit and Chrome.
 - **Colour leak.** After a cool-down, the warm-up picker stayed blue. I caught it on device; the fix makes the picker follow the mode just chosen. Verified by a pixel scan of every screen in both directions.
 - **Screen 4.** AI's first read of the flow included a leftover wireframe. I cut it.
 - **Routine content.** I replaced AI-written routines with sourced reference routines.

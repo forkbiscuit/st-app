@@ -94,7 +94,7 @@ export function RoutineScreen({ state, dispatch }: { state: AppState; dispatch: 
           </p>
           <div className="empty-actions">
             {removedCount > 0 && (
-              <Button variant="secondary" icon="restart_alt" onClick={() => dispatch({ type: 'RESTORE_ALL' })}>
+              <Button variant="secondary" onClick={() => dispatch({ type: 'RESTORE_ALL' })}>
                 Restore all moves
               </Button>
             )}
@@ -114,7 +114,7 @@ export function RoutineScreen({ state, dispatch }: { state: AppState; dispatch: 
             Add at least one move to start.
           </p>
         )}
-        <Button onClick={start} inactive={steps.length === 0} icon="play_arrow">
+        <Button onClick={start} inactive={steps.length === 0}>
           Start {word}
         </Button>
       </div>

@@ -57,7 +57,7 @@ export interface AppState {
   run: RunState | null;
   rating: Feedback | null;
   reasons: FeedbackReason[];
-  /** What the next "Give me another" should adjust, from submitted feedback. */
+  /** What the next "Do another" should adjust, from submitted feedback. */
   lastReasons: FeedbackReason[];
   toast: Toast | null;
   undo: UndoSnapshot | null;

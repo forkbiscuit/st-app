@@ -44,6 +44,10 @@
 
 .btn {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   flex: 1 1 0;
   min-width: 0;
   height: var(--button-h);
@@ -62,6 +66,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
   gap: 8px;
   white-space: nowrap;
 }

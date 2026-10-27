@@ -85,7 +85,7 @@ export function ActivityPicker({ state, dispatch }: { state: AppState; dispatch:
       </p>
 
       <div className="screen-actions">
-        <Button onClick={next} inactive={!state.activity} iconAfter="arrow_forward">
+        <Button onClick={next} inactive={!state.activity}>
           {mode === 'warm' ? 'Build my warm-up' : 'Build my cool-down'}
         </Button>
       </div>

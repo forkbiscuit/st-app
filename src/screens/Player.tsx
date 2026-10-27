@@ -243,7 +243,7 @@ function Movement({
             <Button variant="ghost" iconAfter="skip_next" onClick={onSkip}>
               Skip
             </Button>
-            <Button ref={primaryRef} icon="play_arrow" onClick={begin}>
+            <Button ref={primaryRef} onClick={begin}>
               {timed ? 'Start movement' : 'Start'}
             </Button>
           </>
@@ -259,12 +259,12 @@ function Movement({
           </>
         )}
         {phase === 'active' && !timed && (
-          <Button ref={primaryRef} icon="check" onClick={onDone}>
+          <Button ref={primaryRef} onClick={onDone}>
             {isLast ? `Done, finish ${modeWord(mode)}` : 'Done'}
           </Button>
         )}
         {phase === 'done' && (
-          <Button ref={primaryRef} iconAfter="arrow_forward" onClick={onDone}>
+          <Button ref={primaryRef} onClick={onDone}>
             {nextLabel}
           </Button>
         )}
