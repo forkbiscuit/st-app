@@ -75,6 +75,8 @@ export function RoutineScreen({ state, dispatch }: { state: AppState; dispatch: 
         )}
       </div>
 
+      {/* Only the list scrolls; the title, length control and Start stay put. */}
+      <div className="routine-scroll">
       {steps.length > 0 ? (
         <RoutineList
           steps={steps}
@@ -105,8 +107,9 @@ export function RoutineScreen({ state, dispatch }: { state: AppState; dispatch: 
           </div>
         </div>
       )}
+      </div>
 
-      <div className="screen-actions sticky">
+      <div className="screen-actions routine-actions">
         {startHint && steps.length === 0 && (
           <p className="field-hint is-error" role="alert">
             Add at least one move to start.

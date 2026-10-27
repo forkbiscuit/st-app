@@ -26,7 +26,7 @@ npm run dev        # http://localhost:5173
 4. **Start warm-up.** Timed moves count down while the screen edge and the Next button fill; two-sided moves cue the switch at half time. Rep moves show the count and a Done button.
 5. Rate it. Thumbs down asks what was off. Then **Finish** sets a (simulated) reminder for the matching cool-down.
 
-Turn on **Fast timers** in the reviewer controls (right of the phone, or below it on mobile) to run timers at 10×. **Block browser storage** shows the bookmark error state.
+On desktop, the reviewer controls beside the phone can run timers at 10× (**Fast timers**) and show the bookmark error state (**Block browser storage**). On a phone the app is full screen with no reviewer controls.
 
 ## How it's built
 
@@ -61,7 +61,11 @@ React 18 + TypeScript + Vite. No router or state library; one reducer holds the 
 
 Colour carries meaning: ember reds for warm-ups, tide blues for cool-downs. The phone and anything inside it gets `data-mode="warm" | "cool"`, which re-points `--accent-1`, `--accent-2`, `--accent-text` and `--accent-deep`. Components only ever use the `--accent-*` tokens. Tokens derived from the accent (like `--accent-gradient`) are declared on `:root, [data-mode]` so they recompute per mode.
 
-Type is one family, Archivo, used at three widths: expanded for headings, normal for body, condensed for the timer.
+Titles are Instrument Serif; body copy, buttons and labels are Archivo. The timer uses condensed Archivo because its digits are fixed-width, so the countdown doesn't jitter.
+
+Screen changes run inside a View Transition: `go()` in `App.tsx` wraps any action that changes the screen or the current movement, and `base.css` styles the crossfade. Browsers without the API, and people who prefer reduced motion, get a simple fade-in or an instant change.
+
+On the routine screen only the movement list scrolls (`.routine-scroll`); the title, session length and Start button stay fixed. On phones the page itself never scrolls.
 
 ## Where to make a typical change
 
@@ -73,10 +77,10 @@ Type is one family, Archivo, used at three widths: expanded for headings, normal
 
 ## What works, what's mocked
 
-**Works:** the full flow above; reorder by drag, keyboard or menu; remove with undo; restore all; session length; timers with pause, skip and side switch; ratings with reasons; bookmarks that persist across reloads; feedback that adjusts "Give me another" (Too long → shorter, Too easy → longer, Too repetitive → shuffled).
+**Works:** the full flow above; reorder by drag, keyboard or menu; remove with undo; restore all; session length; timers with pause, skip and side switch; ratings with reasons (Too easy and Too difficult can't both be picked); bookmarks that persist across reloads; feedback that adjusts "Give me another" (Too long → shorter, Too easy → longer, Too repetitive → shuffled).
 
 **Mocked:**
-- **Generating** is a timed animation. Routines come from the fixed reference data, not a model. The free-text "Add a workout" field from the flowchart isn't built.
+- **Generating** is a timed animation (about 3 seconds, not affected by Fast timers). Routines come from the fixed reference data, not a model. The free-text "Add a workout" field from the flowchart isn't built.
 - **Reminders** are stored and shown on the home screen but never fire. There are no notifications.
 - **Demo animations** are abstract loops per movement pattern (stride, swing, press…), standing in for real exercise video.
 - **Equipment** questions from the flowchart are not built. Gym routines assume a band; one hiking cool-down move is marked optional because it needs a ball.
@@ -119,4 +123,4 @@ Type is one family, Archivo, used at three widths: expanded for headings, normal
 
 ## Credits
 
-Archivo (SIL Open Font License) via Fontsource. Material Symbols Rounded (Apache 2.0) via the `material-symbols` package. Drag and drop by dnd-kit (MIT). React and Vite (MIT). No templates or starter projects were used.
+Instrument Serif and Archivo (SIL Open Font License) via Fontsource. Material Symbols Rounded (Apache 2.0) via the `material-symbols` package. Drag and drop by dnd-kit (MIT). React and Vite (MIT). No templates or starter projects were used.

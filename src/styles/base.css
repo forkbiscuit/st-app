@@ -89,17 +89,17 @@ button:disabled {
 
 /* ---------- Type ---------- */
 
+/* Titles: Instrument Serif. It only comes in one weight, so hierarchy is size. */
 .display {
-  font-stretch: var(--wide);
-  font-weight: 800;
-  font-size: var(--t-28);
-  line-height: 1.04;
-  letter-spacing: -0.025em;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--t-44);
+  line-height: 1;
+  letter-spacing: -0.01em;
   text-wrap: balance;
 }
 
 .section-title {
-  font-stretch: 112%;
   font-weight: 700;
   font-size: var(--t-16);
   letter-spacing: -0.005em;
@@ -248,26 +248,98 @@ button:disabled {
   color: var(--muted);
 }
 
-@keyframes screen-in {
-  from {
+/*
+  Screen transitions. Screen changes run inside a View Transition (see go() in
+  App.tsx): the outgoing screen eases up and away, the incoming one settles in
+  from slightly below with a short overlap. The phone's colour glow crossfades
+  underneath. Browsers without the API fall back to the screen-in animation.
+*/
+:root {
+  --vt-out: 320ms;
+  --vt-in: 620ms;
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.screen {
+  view-transition-name: screen;
+}
+
+::view-transition-group(root) {
+  animation-duration: 700ms;
+  animation-timing-function: var(--ease-soft);
+}
+
+::view-transition-old(screen) {
+  animation: vt-out var(--vt-out) var(--ease-soft) both;
+}
+
+::view-transition-new(screen) {
+  animation: vt-in var(--vt-in) var(--ease-out) 160ms both;
+}
+
+::view-transition-group(screen) {
+  animation: none;
+}
+
+@keyframes vt-out {
+  to {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(-10px) scale(0.985);
+    filter: blur(3px);
   }
 }
 
-/* Small screens: the app is the page. Reviewer controls follow below. */
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.99);
+    filter: blur(6px);
+  }
+}
+
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@supports (view-transition-name: none) {
+  .screen {
+    animation: none;
+  }
+}
+
+/*
+  Small screens: the app is the whole page, edge to edge, with nothing else
+  on it. Reviewer controls are desktop-only. The page itself never scrolls;
+  each screen manages its own scrolling.
+*/
 @media (max-width: 760px) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
   .stage {
     display: block;
+    height: 100dvh;
+    min-height: 0;
     padding: 0;
   }
 
   .phone {
     width: 100%;
     height: 100dvh;
-    min-height: 600px;
+    min-height: 0;
     border-radius: 0;
     box-shadow: none;
+  }
+
+  .reviewer {
+    display: none;
   }
 }
 

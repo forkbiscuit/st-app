@@ -4,12 +4,15 @@ import { LogoMark } from '../components/Logo';
 import { modeWord } from '../lib/routine';
 import type { Action, AppState } from '../state/appState';
 
-const STEP_MS = 950;
+/** Time each line is shown. Three lines ≈ 2.7 s, then the routine fades in. */
+const LINE_MS = 900;
 
 /**
- * Wireframes 5–6: a short, mocked "generating" beat. The copy walks from the
- * routine, to the muscles it focuses on, to an activity-themed line.
+ * Wireframes 5–6: a short, mocked "building" beat. The copy walks from the
+ * routine, to the muscles it focuses on, to an activity-themed line, with a
+ * crossfade between lines and a progress bar underneath.
  * The routine itself comes from the standard routines in src/data.
+ * Deliberately not affected by the reviewer's fast-timer setting.
  */
 export function Generating({ state, dispatch }: { state: AppState; dispatch: (a: Action) => void }) {
   const [line, setLine] = useState(0);
@@ -23,11 +26,11 @@ export function Generating({ state, dispatch }: { state: AppState; dispatch: (a:
         activity.loading[routine!.mode],
       ]
     : ['Building your routine…'];
+  const total = lines.length * LINE_MS;
 
   useEffect(() => {
-    const step = STEP_MS / state.speed;
-    const timers = lines.map((_, i) => window.setTimeout(() => setLine(i), i * step));
-    const done = window.setTimeout(() => dispatch({ type: 'GENERATED' }), lines.length * step);
+    const timers = lines.map((_, i) => window.setTimeout(() => setLine(i), i * LINE_MS));
+    const done = window.setTimeout(() => dispatch({ type: 'GENERATED' }), total);
     return () => {
       timers.forEach(window.clearTimeout);
       window.clearTimeout(done);
@@ -39,7 +42,21 @@ export function Generating({ state, dispatch }: { state: AppState; dispatch: (a:
     <div className="screen-body generating">
       <div className="generating-center">
         <LogoMark size={88} animated />
-        <p className="generating-line" aria-live="polite" key={line}>
+        <div className="generating-lines">
+          {lines.map((text, i) => (
+            <p
+              key={i}
+              className={`generating-line${i === line ? ' is-current' : i < line ? ' is-past' : ''}`}
+              aria-hidden={i !== line}
+            >
+              {text}
+            </p>
+          ))}
+        </div>
+        <span className="generating-bar" aria-hidden="true">
+          <span style={{ animationDuration: `${total}ms` }} />
+        </span>
+        <p className="sr-only" aria-live="polite">
           {lines[line]}
         </p>
       </div>

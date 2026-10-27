@@ -131,6 +131,12 @@ export function initialState(): AppState {
 
 const LENGTH_ORDER: Length[] = ['quick', 'standard', 'long'];
 
+/** Feedback reasons that can't both be true. */
+const OPPOSITES: Partial<Record<FeedbackReason, FeedbackReason>> = {
+  'Too easy': 'Too difficult',
+  'Too difficult': 'Too easy',
+};
+
 /** Replace the open routine, keeping any linked saved copy in sync. */
 function withRoutine(state: AppState, routine: Routine): AppState {
   if (!state.savedId) return { ...state, routine };
@@ -328,10 +334,10 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case 'TOGGLE_REASON': {
       const has = state.reasons.includes(action.reason);
-      return {
-        ...state,
-        reasons: has ? state.reasons.filter((r) => r !== action.reason) : [...state.reasons, action.reason],
-      };
+      if (has) return { ...state, reasons: state.reasons.filter((r) => r !== action.reason) };
+      // A routine can't be both too easy and too difficult: picking one clears the other.
+      const opposite = OPPOSITES[action.reason];
+      return { ...state, reasons: [...state.reasons.filter((r) => r !== opposite), action.reason] };
     }
 
     case 'SUBMIT_FEEDBACK':
