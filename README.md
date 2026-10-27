@@ -22,7 +22,7 @@ npm run build    # type-check + static build to dist/ (deployed to Pages on push
 ## Primary workflow
 
 1. **Warm up** → **Surf** → **Build my warm-up**.
-2. Switch **Session length** (Quick / Standard / Long) and watch the list and time update. Drag a move's handle to reorder; **…** → **Remove** (with Undo).
+2. Switch **Session length** (Quick / Standard / Long) and watch the list and time update. Tap a move to see how to do it and why; **Remove** is there too (with Undo). Drag a move's handle to reorder.
 3. Tap the **bookmark** icon. Reopen it later from the bookmarks icon on the first screens.
 4. **Start warm-up.** Timers fill the screen edge and the Next button; two-sided moves cue the switch.
 5. Rate it, then **Finish** sets a simulated reminder for the matching cool-down.

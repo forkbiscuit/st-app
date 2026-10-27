@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   DndContext,
   KeyboardSensor,
@@ -31,7 +31,7 @@ interface Props {
  * Wireframe 7's movement list. Two ways to reorder:
  *  - drag the handle (mouse or touch)
  *  - focus the handle, Space to pick up, arrows to move, Space to drop
- * A row's "…" menu holds Remove.
+ * Tapping a row expands it to explain the move (how and why) and offer Remove.
  */
 export function RoutineList({ steps, onReorder, onRemove }: Props) {
   const [openUid, setOpenUid] = useState<string | null>(null);
@@ -110,11 +110,22 @@ function Row({
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: step.uid,
   });
-  const menuId = `row-menu-${step.uid}`;
+  const rowRef = useRef<HTMLLIElement | null>(null);
+  const detailId = `move-detail-${step.uid}`;
+
+  // When a row opens near the bottom of the list, bring its detail into view.
+  useEffect(() => {
+    if (!open) return;
+    const t = window.setTimeout(() => rowRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 200);
+    return () => window.clearTimeout(t);
+  }, [open]);
 
   return (
     <li
-      ref={setNodeRef}
+      ref={(el) => {
+        setNodeRef(el);
+        rowRef.current = el;
+      }}
       className={`move-row${isDragging ? ' is-dragging' : ''}${open ? ' is-open' : ''}`}
       style={{ transform: CSS.Translate.toString(transform), transition }}
     >
@@ -129,31 +140,51 @@ function Row({
         >
           <Icon name="drag_indicator" />
         </button>
-        <span className="move-num" aria-hidden="true">
-          {index + 1}
-        </span>
-        <span className="move-text">
-          <span className="move-name">{step.name}</span>
-          <span className="move-dose">{doseLabel(step.dose)}</span>
-        </span>
+        {/* The whole row is the toggle: tap to see how and why, tap again (or the chevron) to collapse. */}
         <button
           type="button"
-          className="icon-btn move-more"
-          aria-label={`Options for ${step.name}`}
+          className="move-toggle"
           aria-expanded={open}
-          aria-controls={menuId}
+          aria-controls={detailId}
           onClick={onToggle}
         >
-          <Icon name="more_horiz" />
+          <span className="move-num" aria-hidden="true">
+            {index + 1}
+          </span>
+          <span className="move-text">
+            <span className="move-name">{step.name}</span>
+            <span className="move-dose">{doseLabel(step.dose)}</span>
+          </span>
+          <span className="move-chevron" aria-hidden="true">
+            <Icon name="expand_more" />
+          </span>
         </button>
       </div>
-      {open && (
-        <div className="move-actions" id={menuId}>
-          <button type="button" className="chip-btn" onClick={onRemove}>
+
+      {/* Always rendered so it can animate open; inert while collapsed. */}
+      <div className="move-detail" id={detailId} {...(open ? {} : { inert: '' })} aria-hidden={!open}>
+        <div className="move-detail-inner">
+          <dl className="move-info">
+            <div>
+              <dt>How</dt>
+              <dd>{step.exercise.how}</dd>
+            </div>
+            <div>
+              <dt>Why</dt>
+              <dd>{step.step.why}</dd>
+            </div>
+            {step.step.note && (
+              <div>
+                <dt>Note</dt>
+                <dd>{step.step.note}</dd>
+              </div>
+            )}
+          </dl>
+          <button type="button" className="chip-btn move-remove" onClick={onRemove}>
             <Icon name="delete" /> Remove
           </button>
         </div>
-      )}
+      </div>
     </li>
   );
 }

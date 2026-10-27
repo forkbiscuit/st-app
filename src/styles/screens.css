@@ -469,16 +469,15 @@
 
 .move-main {
   display: grid;
-  grid-template-columns: 40px 22px 1fr 48px;
-  align-items: center;
+  grid-template-columns: 40px 1fr;
+  align-items: stretch;
   min-height: 66px;
-  padding-right: 4px;
 }
 
 .drag-handle {
   display: grid;
   place-items: center;
-  height: 66px;
+  min-height: 66px;
   color: var(--faint);
   cursor: grab;
   touch-action: none;
@@ -492,6 +491,20 @@
 .is-dragging .drag-handle {
   cursor: grabbing;
   color: var(--accent-text);
+}
+
+.move-toggle {
+  display: grid;
+  grid-template-columns: 22px 1fr 44px;
+  align-items: center;
+  min-width: 0;
+  padding-right: 4px;
+  text-align: left;
+  border-radius: 0 var(--r-row) var(--r-row) 0;
+}
+
+.move-toggle:hover .move-chevron {
+  color: var(--paper);
 }
 
 .move-num {
@@ -518,17 +531,69 @@
   color: var(--muted);
 }
 
-.move-more {
-  justify-self: end;
+.move-chevron {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
   color: var(--muted);
+  transition: transform 360ms var(--ease-out), color 160ms ease;
 }
 
-.move-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-2);
-  padding: 0 var(--s-3) var(--s-3) 68px;
-  animation: fade-in 160ms ease;
+.move-row.is-open .move-chevron {
+  transform: rotate(180deg);
+  color: var(--accent-text);
+}
+
+/* Expands with a height animation (0fr → 1fr) rather than a jump. */
+.move-detail {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 380ms var(--ease-out),
+    opacity 260ms ease;
+}
+
+.move-row.is-open .move-detail {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.move-detail-inner {
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  gap: var(--s-3);
+  padding: 0 var(--s-4) 0 62px;
+}
+
+.move-row.is-open .move-detail-inner {
+  padding-bottom: var(--s-4);
+}
+
+.move-info {
+  display: grid;
+  gap: var(--s-3);
+  padding-top: 2px;
+  border-top: 1px solid var(--ink-3);
+  padding-top: var(--s-3);
+}
+
+.move-info dt {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-text);
+}
+
+.move-info dd {
+  margin-top: 2px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.move-remove {
+  justify-self: start;
 }
 
 .empty-state {
