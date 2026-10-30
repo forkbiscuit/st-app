@@ -18,7 +18,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { doseLabel, type ResolvedStep } from '../lib/routine';
+import { doseLabel, stepNote, type ResolvedStep } from '../lib/routine';
 import { Icon } from './Icon';
 
 interface Props {
@@ -112,6 +112,7 @@ function Row({
   });
   const rowRef = useRef<HTMLLIElement | null>(null);
   const detailId = `move-detail-${step.uid}`;
+  const note = stepNote(step);
 
   // When a row opens near the bottom of the list, bring its detail into view.
   useEffect(() => {
@@ -173,10 +174,10 @@ function Row({
               <dt>Why</dt>
               <dd>{step.step.why}</dd>
             </div>
-            {step.step.note && (
+            {note && (
               <div>
                 <dt>Note</dt>
-                <dd>{step.step.note}</dd>
+                <dd>{note}</dd>
               </div>
             )}
           </dl>

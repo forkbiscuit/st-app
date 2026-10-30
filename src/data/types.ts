@@ -2,7 +2,17 @@
 
 export type Mode = 'warm' | 'cool';
 
-export type ActivityId = 'run' | 'ski' | 'surf' | 'hike' | 'upper' | 'lower';
+export type ActivityId = 'run' | 'ski' | 'cycle' | 'hike' | 'upper' | 'lower';
+
+/**
+ * Where a step sits in a routine.
+ * Warm-ups follow RAMP (Jeffreys): raise the pulse, mobilise, activate, then prime
+ * for the activity. Cool-downs ease off, stretch, then relax.
+ */
+export type Phase = 'raise' | 'mobilise' | 'activate' | 'prime' | 'ease' | 'stretch' | 'relax';
+
+/** Kit an exercise needs. Shown as a note so nobody gets surprised mid-routine. */
+export type Kit = 'band' | 'bike' | 'rower' | 'roller' | 'ball' | 'bar';
 
 /** Session length is the adjustable parameter on the routine screen. */
 export type Length = 'quick' | 'standard' | 'long';
@@ -36,11 +46,12 @@ export interface Exercise {
   /** "Direction" line on the movement screen: how to do it. */
   how: string;
   motion: MotionKind;
+  kit?: Kit;
 }
 
-/** One step in an activity's standard routine. */
+/** One option in an activity's pool of warm-up or cool-down steps. */
 export interface RoutineStep {
-  /** Stable id, unique within the activity + mode. */
+  /** Stable id, unique within the activity + mode. Bookmarks store it: never rename or reuse. */
   id: string;
   exercise: string;
   /** Overrides the exercise's library name for this context. */
@@ -48,8 +59,13 @@ export interface RoutineStep {
   dose: Dose;
   /** "Why?" line on the movement screen. */
   why: string;
-  /** Core steps are kept in the Quick session length. */
-  core: boolean;
+  phase: Phase;
+  /** Key steps cover the activity's main muscles and are picked first, so Quick keeps them. */
+  key?: boolean;
+  /** 1 gentle, 2 moderate, 3 jumps and bounds. "Too difficult" feedback drops level 3. */
+  level?: 1 | 2 | 3;
+  /** Steps sharing a group are alternatives (e.g. three quad stretches): a routine uses one. */
+  group?: string;
   /** Shown under the dose when the step is optional or conditional. */
   note?: string;
 }
@@ -61,11 +77,11 @@ export interface Activity {
   icon: string;
   /** Short group label shown on the tile, e.g. "Gym". */
   group?: string;
-  /** Lower-case name used in sentences: "Your surfing warm-up". */
+  /** Lower-case name used in sentences: "Your cycling warm-up". */
   noun: string;
-  /** The outing itself, for reminders: "Cool down after your surf". */
+  /** The outing itself, for reminders: "Cool down after your ride". */
   session: string;
-  /** Verb for the ready screen: "You're ready to surf". */
+  /** Verb for the ready screen: "You're ready to ride". */
   verb: string;
   /** Key muscles, sentence case: "Shoulders, back and hips". */
   focus: string;
@@ -79,6 +95,8 @@ export interface RoutineItem {
   uid: string;
   stepId: string;
   removed: boolean;
+  /** Shortest session length that includes this item: quick items show in every length. */
+  tier: Length;
 }
 
 export interface Routine {

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button, IconButton } from '../components/Button';
 import { MotionDemo } from '../components/MotionDemo';
 import { PerimeterProgress } from '../components/PerimeterProgress';
-import { doseLabel, modeWord, sideNames, type ResolvedStep } from '../lib/routine';
+import { doseLabel, modeWord, sideNames, stepNote, type ResolvedStep } from '../lib/routine';
 import { useTimer } from '../lib/useTimer';
 import type { Action, AppState } from '../state/appState';
 
@@ -164,6 +164,7 @@ function Movement({
   const remaining = Math.max(0, Math.ceil(totalSec - timer.elapsed));
   const progress = timed ? timer.elapsed / (totalSec || 1) : 0;
   const sideLabel = sides === 2 && dose.kind === 'time' ? sideNames(dose.per)[side] : null;
+  const note = stepNote(step);
   const switchingNow = sides === 2 && timer.elapsed >= sideSec && timer.elapsed - sideSec < 1.6 * speed;
 
   return (
@@ -175,7 +176,7 @@ function Movement({
           {step.name}
         </h1>
         <p className="movement-dose">{doseLabel(dose)}</p>
-        {step.step.note && <p className="movement-note">{step.step.note}</p>}
+        {note && <p className="movement-note">{note}</p>}
 
         <div className="movement-stage">
           {phase === 'intro' && <MotionDemo kind={step.exercise.motion} label={step.name} />}
@@ -204,7 +205,7 @@ function Movement({
               <MotionDemo kind={step.exercise.motion} label={step.name} />
               <p className="count">{dose.kind === 'reps' ? dose.reps : dose.label.split(' ')[0]}</p>
               <p className="count-unit">
-                {dose.kind === 'reps' ? doseLabel(dose).replace(/^\S+\s/, '') : 'sets'}
+                {dose.kind === 'reps' ? doseLabel(dose).replace(/^\S+\s/, '') : dose.label.split(' ').slice(1).join(' ')}
               </p>
             </div>
           )}
