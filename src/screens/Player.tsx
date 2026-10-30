@@ -141,18 +141,6 @@ function Movement({
     if (paused && timer.running) timer.pause();
   }, [paused, timer]);
 
-  // Space toggles pause while a timer is active (unless a button has focus, where Space presses it).
-  useEffect(() => {
-    if (!timed || phase !== 'active') return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== ' ' || (e.target as HTMLElement).closest('button')) return;
-      e.preventDefault();
-      timer.running ? timer.pause() : timer.start();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [timed, phase, timer]);
-
   const begin = () => {
     setPhase('active');
     if (timed) {
@@ -160,6 +148,33 @@ function Movement({
       setAnnounce(sides === 2 ? `Started. ${sideNames(dose.per)[0]} first.` : 'Started');
     }
   };
+
+  // Keyboard, so you can follow along from a few steps back from a laptop:
+  // Space is the main action (start, pause or resume, done, next), → skips or
+  // moves on. Space on a focused button presses that button instead.
+  // Read through a ref so the listener isn't re-added on every timer frame.
+  const onKey = useRef<(e: KeyboardEvent) => void>(() => {});
+  onKey.current = (e) => {
+    if (paused || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('.reviewer')) return;
+    if (e.key === ' ') {
+      if (target.closest('button, input, label')) return;
+      e.preventDefault();
+      if (phase === 'intro') begin();
+      else if (phase === 'active' && timed) timer.running ? timer.pause() : timer.start();
+      else onDone();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      if (phase === 'done') onDone();
+      else onSkip();
+    }
+  };
+  useEffect(() => {
+    const listener = (e: KeyboardEvent) => onKey.current(e);
+    window.addEventListener('keydown', listener);
+    return () => window.removeEventListener('keydown', listener);
+  }, []);
 
   const remaining = Math.max(0, Math.ceil(totalSec - timer.elapsed));
   const progress = timed ? timer.elapsed / (totalSec || 1) : 0;
@@ -270,6 +285,30 @@ function Movement({
           </Button>
         )}
       </div>
+
+      {/* Only on devices with a keyboard and mouse (see layout.css). */}
+      <p className="key-hints">
+        {phase === 'intro' && (
+          <>
+            <kbd>Space</kbd> to start, <kbd>→</kbd> to skip
+          </>
+        )}
+        {phase === 'active' && timed && (
+          <>
+            <kbd>Space</kbd> to {timer.running ? 'pause' : 'resume'}, <kbd>→</kbd> to skip
+          </>
+        )}
+        {phase === 'active' && !timed && (
+          <>
+            <kbd>Space</kbd> when you’re done, <kbd>→</kbd> to skip
+          </>
+        )}
+        {phase === 'done' && (
+          <>
+            <kbd>Space</kbd> or <kbd>→</kbd> {isLast ? 'to finish' : 'for the next move'}
+          </>
+        )}
+      </p>
     </>
   );
 }

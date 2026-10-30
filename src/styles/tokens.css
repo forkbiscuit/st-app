@@ -68,13 +68,14 @@
   --s-8: 32px;
   --s-10: 40px;
   --gutter: 20px;
+  /* Widest a screen's content gets; screens set their own on wide windows. */
+  --page: 560px;
 
   /* Shape: radius encodes size, not decoration */
   --r-chip: 999px;
   --r-row: 14px;
   --r-tile: 22px;
   --r-button: 18px;
-  --r-phone: 46px;
 
   /* Touch: fat buttons, generous targets */
   --hit: 48px;

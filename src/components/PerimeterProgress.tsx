@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 /**
  * The glowing stroke that traces the edge of the screen and fills as a
  * movement timer runs (wireframe 9). Sized to its parent with ResizeObserver
- * so the corner radius matches the phone frame or a full-bleed mobile screen.
+ * so it traces whatever it sits in: the whole window, with square corners.
  *
  * Safari notes (these caused a frozen stroke and flicker on iPhone):
  * - The path length is computed exactly instead of relying on `pathLength`.

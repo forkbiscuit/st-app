@@ -33,7 +33,7 @@ export function Home({ state, dispatch }: { state: AppState; dispatch: (a: Actio
             </p>
             <p className="reminder-meta">
               {isToday(reminder.at) ? 'Today' : dayFmt.format(reminder.at)} at {timeFmt.format(reminder.at)}.
-              Notifications are simulated in this prototype.
+              You’ll see it here.
             </p>
           </div>
           <button type="button" className="text-btn" onClick={() => dispatch({ type: 'CANCEL_REMINDER' })}>

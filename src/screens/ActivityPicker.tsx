@@ -6,9 +6,10 @@ import { Icon } from '../components/Icon';
 import { TopBar } from '../components/TopBar';
 import type { Action, AppState } from '../state/appState';
 import { newSeed } from '../lib/generate';
+import { useMediaQuery, WIDE } from '../lib/useMediaQuery';
 
 /**
- * Wireframes 2–3: pick the activity. A radio group in a 2×3 grid.
+ * Wireframes 2–3: pick the activity. A radio group: 2 columns on phones, 3 on wide windows.
  * Arrow keys move between tiles; the Next button explains itself if nothing is picked.
  */
 export function ActivityPicker({ state, dispatch }: { state: AppState; dispatch: (a: Action) => void }) {
@@ -16,6 +17,7 @@ export function ActivityPicker({ state, dispatch }: { state: AppState; dispatch:
   const [hint, setHint] = useState(false);
   const mode = state.mode ?? 'warm';
   const selectedIndex = ACTIVITIES.findIndex((a) => a.id === state.activity);
+  const cols = useMediaQuery(WIDE) ? 3 : 2;
 
   const pick = (i: number) => {
     dispatch({ type: 'PICK_ACTIVITY', activity: ACTIVITIES[i].id });
@@ -23,7 +25,6 @@ export function ActivityPicker({ state, dispatch }: { state: AppState; dispatch:
   };
 
   const onKeyDown = (e: KeyboardEvent, i: number) => {
-    const cols = 2;
     const moves: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols };
     if (!(e.key in moves)) return;
     e.preventDefault();
@@ -70,7 +71,7 @@ export function ActivityPicker({ state, dispatch }: { state: AppState; dispatch:
               onClick={() => pick(i)}
               onKeyDown={(e) => onKeyDown(e, i)}
             >
-              <Icon name={a.icon} size={34} />
+              <Icon name={a.icon} />
               <span className="activity-label">{a.label}</span>
               {a.group && <span className="activity-group">{a.group}</span>}
               <span className="activity-check" aria-hidden="true">

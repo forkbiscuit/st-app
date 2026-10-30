@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { ReviewerPanel } from './components/ReviewerPanel';
 import { Toast } from './components/Toast';
@@ -99,19 +99,39 @@ export default function App() {
   const dismissToast = useCallback(() => dispatch({ type: 'DISMISS_TOAST' }), []);
   const undo = useCallback(() => dispatch({ type: 'UNDO' }), []);
 
+  // Reviewer controls stay out of the way until someone presses X.
+  const [reviewer, setReviewer] = useState(false);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || isTyping(e.target)) return;
+      if (e.key === 'x' || e.key === 'X') setReviewer((open) => !open);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
-    <div className="stage">
-      <main className="phone" data-mode={mode} data-screen={state.screen}>
-        <div className="phone-glow" aria-hidden="true" />
+    <>
+      <main className="app" data-mode={mode} data-screen={state.screen}>
+        <div className="app-glow" aria-hidden="true" />
         <div className="screen" key={state.screen}>
           <ScreenComponent state={state} dispatch={go} />
         </div>
         <Toast toast={state.toast} onUndo={undo} onDismiss={dismissToast} />
       </main>
-      <ReviewerPanel
-        state={state}
-        dispatch={(a) => (a.type === 'RESET_DATA' ? reset() : dispatch(a))}
-      />
-    </div>
+      {reviewer && (
+        <ReviewerPanel
+          state={state}
+          dispatch={(a) => (a.type === 'RESET_DATA' ? reset() : dispatch(a))}
+          onClose={() => setReviewer(false)}
+        />
+      )}
+    </>
   );
+}
+
+/** Keys typed into a field belong to the field, not to shortcuts. */
+function isTyping(target: EventTarget | null) {
+  const el = target as HTMLElement | null;
+  return Boolean(el?.closest('input:not([type=checkbox]), textarea, select, [contenteditable=""], [contenteditable="true"]'));
 }
