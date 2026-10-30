@@ -9,7 +9,8 @@ import type {
   Routine,
   SavedRoutine,
 } from '../data/types';
-import { createRoutine, resolveRoutine, routineTitle, type ResolvedStep } from '../lib/routine';
+import { generateRoutine, type GenerateOptions } from '../lib/generate';
+import { resolveRoutine, routineTitle, type ResolvedStep } from '../lib/routine';
 import { loadPersisted } from './storage';
 
 // All app state lives in one reducer so every screen change is a named action.
@@ -59,6 +60,8 @@ export interface AppState {
   reasons: FeedbackReason[];
   /** What the next "Do another" should adjust, from submitted feedback. */
   lastReasons: FeedbackReason[];
+  /** Step ids from recent routines, per activity and mode, so the next one differs. */
+  recent: Record<string, string[]>;
   toast: Toast | null;
   undo: UndoSnapshot | null;
   /** Reviewer control: timers and loading run this many times faster. */
@@ -70,7 +73,8 @@ export interface AppState {
 export type Action =
   | { type: 'START_MODE'; mode: Mode }
   | { type: 'PICK_ACTIVITY'; activity: ActivityId }
-  | { type: 'GENERATE' }
+  /** seed picks the routine; pass newSeed() so the reducer stays pure. */
+  | { type: 'GENERATE'; seed: number }
   | { type: 'GENERATED' }
   | { type: 'GO'; screen: Screen }
   | { type: 'OPEN_BOOKMARKS' }
@@ -88,7 +92,7 @@ export type Action =
   | { type: 'RATE'; rating: Feedback }
   | { type: 'TOGGLE_REASON'; reason: FeedbackReason }
   | { type: 'SUBMIT_FEEDBACK' }
-  | { type: 'ANOTHER' }
+  | { type: 'ANOTHER'; seed: number }
   | { type: 'FINISH'; now: number }
   | { type: 'CANCEL_REMINDER' }
   | { type: 'TOAST'; message: string; tone?: Toast['tone'] }
@@ -121,6 +125,7 @@ export function initialState(): AppState {
     rating: null,
     reasons: [],
     lastReasons: [],
+    recent: persisted.recent,
     toast: null,
     undo: null,
     speed: 1,
@@ -129,6 +134,18 @@ export function initialState(): AppState {
 }
 
 const LENGTH_ORDER: Length[] = ['quick', 'standard', 'long'];
+
+/** How many recent step ids to avoid per activity and mode (one long routine is 8). */
+const RECENT_MAX = 12;
+
+const recentKey = (activity: ActivityId, mode: Mode) => `${activity}-${mode}`;
+
+/** Remember a routine's steps so the next one for this activity and mode avoids them. */
+function remember(recent: AppState['recent'], routine: Routine): AppState['recent'] {
+  const key = recentKey(routine.activity, routine.mode);
+  const ids = [...new Set([...routine.items.map((i) => i.stepId), ...(recent[key] ?? [])])];
+  return { ...recent, [key]: ids.slice(0, RECENT_MAX) };
+}
 
 /** Feedback reasons that can't both be true. */
 const OPPOSITES: Partial<Record<FeedbackReason, FeedbackReason>> = {
@@ -180,10 +197,14 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case 'GENERATE': {
       if (!state.mode || !state.activity) return state;
+      const routine = generateRoutine(state.activity, state.mode, 'standard', action.seed, {
+        recent: state.recent[recentKey(state.activity, state.mode)],
+      });
       return {
         ...state,
         screen: 'generating',
-        routine: createRoutine(state.activity, state.mode),
+        routine,
+        recent: remember(state.recent, routine),
         savedId: null,
         lastReasons: [],
         undo: null,
@@ -339,26 +360,42 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case 'ANOTHER': {
       if (!state.routine) return state;
-      // Mocked "AI" adjustment: feedback nudges the next routine.
+      // Feedback steers the next routine (stands in for a model).
+      const { activity, mode } = state.routine;
+      const reasons = state.lastReasons;
+      const opts: GenerateOptions = { recent: state.recent[recentKey(activity, mode)] };
+      const changes: string[] = [];
       let length = state.routine.length;
       const idx = LENGTH_ORDER.indexOf(length);
-      if (state.lastReasons.includes('Too long') && idx > 0) length = LENGTH_ORDER[idx - 1];
-      if (state.lastReasons.includes('Too easy') && idx < 2) length = LENGTH_ORDER[idx + 1];
-      const next = createRoutine(state.routine.activity, state.routine.mode, length);
-      if (state.lastReasons.includes('Too repetitive')) {
-        // Keep the pulse raiser first, shuffle the rest.
-        const [first, ...rest] = next.items;
-        rest.sort(() => Math.random() - 0.5);
-        next.items = [first, ...rest];
+      if (reasons.includes('Too long') && idx > 0) {
+        length = LENGTH_ORDER[idx - 1];
+        changes.push('shorter');
       }
-      const changed = length !== state.routine.length ? `Switched to ${length} based on your feedback.` : null;
+      if (reasons.includes('Too easy')) {
+        if (idx < 2) {
+          length = LENGTH_ORDER[idx + 1];
+          changes.push('longer');
+        }
+        opts.harder = true;
+        changes.push('harder moves');
+      }
+      if (reasons.includes('Too difficult') || reasons.includes('Pain or discomfort')) {
+        opts.maxLevel = 1;
+        changes.push('gentler moves');
+      }
+      if (reasons.includes('Too repetitive') || reasons.includes('Wrong focus')) {
+        opts.allNew = true;
+        changes.push('all new moves');
+      }
+      const next = generateRoutine(activity, mode, length, action.seed, opts);
       return {
         ...state,
         screen: 'generating',
         routine: next,
+        recent: remember(state.recent, next),
         savedId: null,
         undo: null,
-        toast: changed ? toast(changed) : null,
+        toast: changes.length ? toast(`Based on your feedback: ${changes.join(', ')}.`) : null,
       };
     }
 
@@ -406,7 +443,14 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, storageBlocked: action.on };
 
     case 'RESET_DATA':
-      return { ...initialState(), saved: [], reminder: null, speed: state.speed, storageBlocked: state.storageBlocked };
+      return {
+        ...initialState(),
+        saved: [],
+        reminder: null,
+        recent: {},
+        speed: state.speed,
+        storageBlocked: state.storageBlocked,
+      };
 
     default:
       return state;

@@ -4,6 +4,7 @@ import { Button } from '../components/Button';
 import { LogoMark } from '../components/Logo';
 import { modeWord } from '../lib/routine';
 import type { Action, AppState } from '../state/appState';
+import { newSeed } from '../lib/generate';
 
 /**
  * Wireframe 15: send-off. Finish sets a (mocked) reminder for the opposite
@@ -34,7 +35,7 @@ export function Ready({ state, dispatch }: { state: AppState; dispatch: (a: Acti
       </div>
 
       <div className="screen-actions stacked">
-        <Button variant="secondary" onClick={() => dispatch({ type: 'ANOTHER' })}>
+        <Button variant="secondary" onClick={() => dispatch({ type: 'ANOTHER', seed: newSeed() })}>
           Do another {word}
         </Button>
         <Button onClick={() => dispatch({ type: 'FINISH', now: Date.now() })}>

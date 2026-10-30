@@ -5,6 +5,7 @@ import { Button } from '../components/Button';
 import { Icon } from '../components/Icon';
 import { TopBar } from '../components/TopBar';
 import type { Action, AppState } from '../state/appState';
+import { newSeed } from '../lib/generate';
 
 /**
  * Wireframes 2–3: pick the activity. A radio group in a 2×3 grid.
@@ -37,7 +38,7 @@ export function ActivityPicker({ state, dispatch }: { state: AppState; dispatch:
       tiles.current[0]?.focus();
       return;
     }
-    dispatch({ type: 'GENERATE' });
+    dispatch({ type: 'GENERATE', seed: newSeed() });
   };
 
   return (

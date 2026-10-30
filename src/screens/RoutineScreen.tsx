@@ -68,9 +68,9 @@ export function RoutineScreen({ state, dispatch }: { state: AppState; dispatch: 
             ? 'No moves'
             : `${steps.length} ${steps.length === 1 ? 'move' : 'moves'}, about ${minutesLabel(total)}`}
         </h2>
-        {hidden > 0 && (
-          <button type="button" className="text-btn" onClick={() => dispatch({ type: 'SET_LENGTH', length: 'standard' })}>
-            {hidden} more in Standard
+        {hidden && (
+          <button type="button" className="text-btn" onClick={() => dispatch({ type: 'SET_LENGTH', length: hidden.length })}>
+            {hidden.count} more in {hidden.label}
           </button>
         )}
       </div>
@@ -88,8 +88,8 @@ export function RoutineScreen({ state, dispatch }: { state: AppState; dispatch: 
           <Icon name="playlist_remove" size={36} />
           <p className="empty-title">No moves left in this {word}.</p>
           <p className="empty-body">
-            {hidden > 0
-              ? `Quick only keeps the essentials, and you’ve removed them. Switch to Standard or bring them back.`
+            {hidden
+              ? `You’ve removed every move at this length. Switch to ${hidden.label} or bring them back.`
               : 'Bring back the moves you removed to start again.'}
           </p>
           <div className="empty-actions">
@@ -98,9 +98,9 @@ export function RoutineScreen({ state, dispatch }: { state: AppState; dispatch: 
                 Restore all moves
               </Button>
             )}
-            {hidden > 0 && (
-              <Button variant="ghost" onClick={() => dispatch({ type: 'SET_LENGTH', length: 'standard' })}>
-                Switch to Standard
+            {hidden && (
+              <Button variant="ghost" onClick={() => dispatch({ type: 'SET_LENGTH', length: hidden.length })}>
+                Switch to {hidden.label}
               </Button>
             )}
           </div>

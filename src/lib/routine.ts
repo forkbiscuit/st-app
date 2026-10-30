@@ -1,6 +1,6 @@
 import { ACTIVITY_BY_ID } from '../data/activities';
-import { EXERCISES } from '../data/exercises';
-import type { ActivityId, Dose, Exercise, Length, Mode, Routine, RoutineStep } from '../data/types';
+import { EXERCISES, kitNote } from '../data/exercises';
+import type { ActivityId, Dose, Exercise, Length, Mode, Routine, RoutineItem, RoutineStep } from '../data/types';
 
 /** Seconds allowed between movements when estimating total time. */
 const TRANSITION_SEC = 8;
@@ -10,10 +10,12 @@ const SEC_PER_REP = 3;
 const PULSE_RAISER_SEC = 120;
 
 export const LENGTHS: { id: Length; label: string; hint: string }[] = [
-  { id: 'quick', label: 'Quick', hint: 'Essentials only' },
-  { id: 'standard', label: 'Standard', hint: 'The full routine' },
-  { id: 'long', label: 'Long', hint: 'Cold days and hard sessions' },
+  { id: 'quick', label: 'Quick', hint: 'The essentials' },
+  { id: 'standard', label: 'Standard', hint: 'A balanced routine' },
+  { id: 'long', label: 'Long', hint: 'Extra moves, longer holds' },
 ];
+
+const RANK: Record<Length, number> = { quick: 0, standard: 1, long: 2 };
 
 export interface ResolvedStep {
   uid: string;
@@ -23,29 +25,18 @@ export interface ResolvedStep {
   dose: Dose;
 }
 
-let uidCounter = 0;
-export const makeUid = () => `i${Date.now().toString(36)}${(uidCounter++).toString(36)}`;
-
 export function stepsFor(activity: ActivityId, mode: Mode): RoutineStep[] {
   return ACTIVITY_BY_ID[activity][mode];
 }
 
-/** A fresh routine with every standard step, in the standard order. */
-export function createRoutine(activity: ActivityId, mode: Mode, length: Length = 'standard'): Routine {
-  return {
-    id: makeUid(),
-    activity,
-    mode,
-    length,
-    items: stepsFor(activity, mode).map((s) => ({ uid: makeUid(), stepId: s.id, removed: false })),
-  };
-}
+/** Whether an item plays at this session length. */
+const inLength = (item: RoutineItem, length: Length) => RANK[item.tier ?? 'quick'] <= RANK[length];
 
 /**
  * Session length changes which steps are included and how long each one runs.
- * - Quick: core steps only; pulse raisers cut to 1 min.
- * - Standard: every step at the low end of its range.
- * - Long: every step at the top of its range; pulse raisers +1 min, holds +15 sec.
+ * - Quick: the steps tiered quick; pulse raisers cut to 1 min.
+ * - Standard: quick and standard steps, at the low end of each range.
+ * - Long: every step, at the top of its range; pulse raisers +1 min, holds +15 sec.
  */
 export function scaleDose(dose: Dose, length: Length): Dose {
   if (dose.kind === 'time') {
@@ -71,10 +62,9 @@ export function resolveRoutine(routine: Routine, length: Length = routine.length
   const byId = new Map(stepsFor(routine.activity, routine.mode).map((s) => [s.id, s]));
   const out: ResolvedStep[] = [];
   for (const item of routine.items) {
-    if (item.removed) continue;
+    if (item.removed || !inLength(item, length)) continue;
     const step = byId.get(item.stepId);
     if (!step) continue;
-    if (length === 'quick' && !step.core) continue;
     const exercise = EXERCISES[step.exercise];
     out.push({
       uid: item.uid,
@@ -87,11 +77,19 @@ export function resolveRoutine(routine: Routine, length: Length = routine.length
   return out;
 }
 
-/** Steps that exist in the routine but are hidden by the current length. */
-export function hiddenByLength(routine: Routine): number {
-  if (routine.length !== 'quick') return 0;
-  const byId = new Map(stepsFor(routine.activity, routine.mode).map((s) => [s.id, s]));
-  return routine.items.filter((i) => !i.removed && !byId.get(i.stepId)?.core).length;
+/** Kit needed, then any step note: "You’ll need a resistance band. One of each letter per rep." */
+export function stepNote(s: ResolvedStep): string | undefined {
+  return [kitNote(s.exercise), s.step.note].filter(Boolean).join(' ') || undefined;
+}
+
+/** The next length up and how many more moves it would add, or null at Long. */
+export function hiddenByLength(routine: Routine): { count: number; length: Length; label: string } | null {
+  const next = LENGTHS[RANK[routine.length] + 1];
+  if (!next) return null;
+  const count = routine.items.filter(
+    (i) => !i.removed && !inLength(i, routine.length) && inLength(i, next.id),
+  ).length;
+  return count > 0 ? { count, length: next.id, label: next.label } : null;
 }
 
 export function doseSeconds(dose: Dose): number {
