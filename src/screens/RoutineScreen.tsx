@@ -62,6 +62,8 @@ export function RoutineScreen({ state, dispatch }: { state: AppState; dispatch: 
 
       <LengthControl routine={routine} onChange={(length) => dispatch({ type: 'SET_LENGTH', length })} />
 
+      {/* On wide windows this is the right-hand column; the rest stays on the left. */}
+      <section className="routine-moves" aria-label="Moves">
       <div className="list-head">
         <h2 className="section-title" aria-live="polite">
           {steps.length === 0
@@ -107,6 +109,7 @@ export function RoutineScreen({ state, dispatch }: { state: AppState; dispatch: 
         </div>
       )}
       </div>
+      </section>
 
       <div className="screen-actions routine-actions">
         {startHint && steps.length === 0 && (
