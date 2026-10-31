@@ -1,0 +1,60 @@
+name: iOS build check
+
+# Compiles the iOS app on a GitHub Mac (no signing), runs it in the iPhone
+# simulator and keeps a screenshot and the app's log as an artifact.
+# Your own phone build still happens in Xcode on your Mac (see README).
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, ios-app]
+    paths: ['ios/**', 'src/**', 'package.json', 'package-lock.json', 'capacitor.config.ts', '.github/workflows/ios.yml']
+
+jobs:
+  simulator:
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ios:sync
+
+      - name: Use the newest Xcode on the runner
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+
+      - name: Build for the simulator
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build | tail -40
+
+      - name: Run in the simulator and screenshot
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          devs = [d for rt, ds in json.load(sys.stdin)['devices'].items() if 'iOS' in rt for d in ds]
+          phones = [d for d in devs if d['name'].startswith('iPhone') and 'Plus' not in d['name'] and 'SE' not in d['name']]
+          print(sorted(phones, key=lambda d: d['name'])[-1]['udid'])")
+          xcrun simctl list devices | grep "$UDID"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time 9:41 --batteryLevel 100 --cellularBars 4 || true
+          xcrun simctl install "$UDID" build/Build/Products/Debug-iphonesimulator/App.app
+          mkdir -p out
+          xcrun simctl launch "$UDID" com.forkbiscuit.updown
+          sleep 12
+          xcrun simctl io "$UDID" screenshot out/home.png
+          xcrun simctl spawn "$UDID" log show --last 2m --style compact --predicate 'process == "App"' > out/app.log || true
+          grep -iE "⚡️|error|exception" out/app.log | tail -60 || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-simulator
+          path: out/

@@ -206,7 +206,6 @@
   align-items: center;
   justify-content: space-between;
   min-height: 64px;
-  padding-top: env(safe-area-inset-top);
   margin-right: -8px;
 }
 
@@ -240,7 +239,7 @@
   position: absolute;
   left: 12px;
   right: 12px;
-  bottom: 96px;
+  bottom: calc(96px + var(--safe-bottom));
   z-index: 30;
   pointer-events: none;
   display: flex;
@@ -473,7 +472,7 @@
 
 .sheet {
   width: 100%;
-  padding: var(--s-6) var(--gutter) var(--gutter);
+  padding: var(--s-6) var(--gutter) calc(var(--gutter) + var(--safe-bottom));
   border-radius: 28px 28px 0 0;
   background: var(--ink-1);
   box-shadow: inset 0 1px 0 var(--ink-3);

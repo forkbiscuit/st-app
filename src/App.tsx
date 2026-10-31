@@ -12,6 +12,7 @@ import { Ready } from './screens/Ready';
 import { RoutineScreen } from './screens/RoutineScreen';
 import { initialState, reducer, type Action, type AppState, type Screen } from './state/appState';
 import { clearPersisted, savePersisted, setSimulateStorageFailure } from './state/storage';
+import { onReminderOpened, syncReminder } from './lib/native';
 
 const SCREENS = {
   home: Home,
@@ -90,6 +91,12 @@ export default function App() {
   }, [state.saved, state.reminder, state.recent]);
 
   useEffect(() => setSimulateStorageFailure(state.storageBlocked), [state.storageBlocked]);
+
+  // In the iOS app, reminders are real notifications; tapping one opens that activity.
+  useEffect(() => {
+    syncReminder(state.reminder);
+  }, [state.reminder]);
+  useEffect(() => onReminderOpened((mode, activity) => dispatch({ type: 'OPEN_REMINDER', mode, activity })), []);
 
   const reset = useCallback(() => {
     clearPersisted();

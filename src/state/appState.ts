@@ -95,6 +95,8 @@ export type Action =
   | { type: 'ANOTHER'; seed: number }
   | { type: 'FINISH'; now: number }
   | { type: 'CANCEL_REMINDER' }
+  /** A reminder notification was tapped: go straight to picking that activity. */
+  | { type: 'OPEN_REMINDER'; mode: Mode; activity: ActivityId }
   | { type: 'TOAST'; message: string; tone?: Toast['tone'] }
   | { type: 'DISMISS_TOAST' }
   | { type: 'STORAGE_FAILED' }
@@ -417,6 +419,17 @@ export function reducer(state: AppState, action: Action): AppState {
         ),
       };
     }
+
+    case 'OPEN_REMINDER':
+      return {
+        ...state,
+        screen: 'activity',
+        mode: action.mode,
+        activity: action.activity,
+        reminder: null,
+        run: null,
+        toast: null,
+      };
 
     case 'CANCEL_REMINDER':
       return { ...state, reminder: null, toast: toast('Reminder cancelled') };

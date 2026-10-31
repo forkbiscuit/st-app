@@ -643,7 +643,11 @@
   gap: var(--s-2);
   min-height: 64px;
   margin: 0 -8px;
-  padding-top: env(safe-area-inset-top);
+}
+
+/* The timer border follows the screen's corners (rounded on newer iPhones, set in native.ts). */
+.screen-body.player {
+  border-radius: var(--screen-radius, 0px);
 }
 
 .player-progress {

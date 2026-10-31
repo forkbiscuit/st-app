@@ -3,6 +3,7 @@ import { Button, IconButton } from '../components/Button';
 import { MotionDemo } from '../components/MotionDemo';
 import { PerimeterProgress } from '../components/PerimeterProgress';
 import { doseLabel, modeWord, sideNames, stepNote, type ResolvedStep } from '../lib/routine';
+import { hapticDone, hapticSwitch, useKeepAwake } from '../lib/native';
 import { useTimer } from '../lib/useTimer';
 import type { Action, AppState } from '../state/appState';
 
@@ -17,6 +18,8 @@ import type { Action, AppState } from '../state/appState';
 export function Player({ state, dispatch }: { state: AppState; dispatch: (a: Action) => void }) {
   const run = state.run;
   const [confirmExit, setConfirmExit] = useState(false);
+  // The screen stays on for the whole routine.
+  useKeepAwake(true);
   if (!run) return null;
   const step = run.steps[run.index];
   if (!step) return null;
@@ -120,7 +123,7 @@ function Movement({
     if (phase === 'active' && timer.done) {
       setPhase('done');
       setAnnounce(`Time’s up. ${step.name} done.`);
-      buzz([60, 60, 60]);
+      hapticDone();
       primaryRef.current?.focus();
     }
   }, [phase, timer.done, step.name]);
@@ -131,7 +134,7 @@ function Movement({
   useEffect(() => {
     if (sides === 2 && side === 1 && prevSide.current === 0) {
       setAnnounce(`Switch to ${sideNames(timed ? dose.per : undefined)[1].toLowerCase()}`);
-      buzz([120]);
+      hapticSwitch();
     }
     prevSide.current = side;
   }, [side, sides, timed, dose]);
@@ -317,12 +320,4 @@ function fmt(sec: number) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}
-
-function buzz(pattern: number[]) {
-  try {
-    navigator.vibrate?.(pattern);
-  } catch {
-    /* not supported */
-  }
 }

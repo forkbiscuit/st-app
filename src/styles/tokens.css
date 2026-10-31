@@ -68,6 +68,9 @@
   --s-8: 32px;
   --s-10: 40px;
   --gutter: 20px;
+  /* Notch and home indicator (non-zero in the iOS app and in full-screen web apps). */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
   /* Widest a screen's content gets; screens set their own on wide windows. */
   --page: 560px;
 

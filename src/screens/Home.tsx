@@ -3,6 +3,7 @@ import type { Mode } from '../data/types';
 import { BookmarksButton } from '../components/BookmarksButton';
 import { Icon } from '../components/Icon';
 import { Logo } from '../components/Logo';
+import { isNative } from '../lib/native';
 import type { Action, AppState } from '../state/appState';
 
 const timeFmt = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -33,7 +34,7 @@ export function Home({ state, dispatch }: { state: AppState; dispatch: (a: Actio
             </p>
             <p className="reminder-meta">
               {isToday(reminder.at) ? 'Today' : dayFmt.format(reminder.at)} at {timeFmt.format(reminder.at)}.
-              You’ll see it here.
+              {isNative ? ' We’ll send a notification.' : ' You’ll see it here.'}
             </p>
           </div>
           <button type="button" className="text-btn" onClick={() => dispatch({ type: 'CANCEL_REMINDER' })}>
