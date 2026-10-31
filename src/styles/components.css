@@ -337,15 +337,19 @@
   }
 }
 
-/* ---------- Move demos (MotionDemo, motion/*.ts) ---------- */
+/* ---------- Move demos (MotionDemo) ---------- */
+
+/*
+  Each move pattern is a geometric loop: gradient dots and bars, a thin ground
+  line, rings and a pale pivot. Transforms and opacity only (Safari-safe).
+  --d is the loop length; variants (.is-fast, .is-slow…) change it, so paired
+  elements stay in step.
+*/
 
 .motion {
   display: grid;
   place-items: center;
   width: 100%;
-  /* Limbs are soft and light; the head, hands and feet carry the colour. */
-  --limb: color-mix(in srgb, var(--paper) 80%, transparent);
-  --limb-far: color-mix(in srgb, var(--paper) 30%, transparent);
 }
 
 .motion svg {
@@ -355,20 +359,12 @@
   overflow: visible;
 }
 
-.m-limb {
-  fill: none;
-  stroke: var(--limb);
-  stroke-width: 6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.m-limb.is-far {
-  stroke: var(--limb-far);
-}
-
-.m-torso {
-  stroke-width: 7.5;
+.motion g,
+.motion rect,
+.motion circle,
+.motion ellipse,
+.motion path {
+  transform-box: view-box;
 }
 
 .m-ground {
@@ -377,21 +373,20 @@
   stroke-linecap: round;
 }
 
-.m-ground.is-dashed {
-  stroke-dasharray: 10 6;
-}
-
-.m-prop {
+.m-ring,
+.m-square {
   fill: none;
-  stroke: var(--ink-4);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  stroke: var(--ink-3);
+  stroke-width: 2;
 }
 
-.m-prop.is-bar {
-  stroke: var(--muted);
-  stroke-width: 3.5;
+.m-pivot {
+  fill: var(--paper);
+}
+
+.m-ghost,
+.m-shadow {
+  fill: var(--ink-3);
 }
 
 .m-box {
@@ -400,44 +395,397 @@
   stroke-width: 2;
 }
 
-.m-wheel circle,
-.m-wheel line {
+.m-bar {
+  fill: var(--muted);
+}
+
+.m-stand {
+  stroke: var(--ink-4);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+.m-spoke {
   stroke: var(--ink-4);
   stroke-width: 2.5;
   stroke-linecap: round;
 }
 
-.m-wheel.is-accent circle {
-  stroke: none;
-}
-
-.m-wheel.is-accent line {
+.motion-roll .m-spoke {
   stroke: color-mix(in srgb, var(--on-accent) 45%, transparent);
-  stroke-width: 2;
 }
 
-/* Bands, and the rower's chain. */
-.m-band {
-  stroke: var(--accent-2);
-  stroke-width: 2.5;
+.m-arc {
+  fill: none;
+  stroke-width: 9;
   stroke-linecap: round;
-  opacity: 0.85;
-}
-
-.m-ghost {
-  pointer-events: none;
 }
 
 .m-trail-1 {
-  opacity: 0.34;
+  opacity: 0.3;
 }
 
 .m-trail-2 {
-  opacity: 0.18;
+  opacity: 0.14;
 }
 
-.m-trail-3 {
-  opacity: 0.08;
+.motion.is-paused * {
+  animation-play-state: paused !important;
+}
+
+/* Feet: stride marches, run loops with the ground sliding past. */
+.motion-stride { --d: 0.9s; }
+.motion-stride.is-fast { --d: 0.55s; }
+.motion-stride.is-slow { --d: 1.6s; }
+.motion-stride .m-a { animation: m-lift var(--d) ease-in-out infinite; }
+.motion-stride .m-b { animation: m-lift var(--d) ease-in-out calc(var(--d) / -2) infinite; }
+
+.motion-run { --d: 0.75s; }
+.motion-run.is-fast { --d: 0.5s; }
+.motion-run .m-a { animation: m-run var(--d) linear infinite; }
+.motion-run .m-b { animation: m-run var(--d) linear calc(var(--d) / -2) infinite; }
+.m-scroll { stroke-dasharray: 10 8; animation: m-scroll var(--d) linear infinite; }
+
+.motion-jack { --d: 0.9s; }
+.motion-jack .m-tl { animation: m-jack-tl var(--d) ease-in-out infinite alternate; }
+.motion-jack .m-tr { animation: m-jack-tr var(--d) ease-in-out infinite alternate; }
+.motion-jack .m-bl { animation: m-jack-bl var(--d) ease-in-out infinite alternate; }
+.motion-jack .m-br { animation: m-jack-br var(--d) ease-in-out infinite alternate; }
+
+.motion-row { --d: 3s; }
+.motion-row .m-seat { animation: m-row-seat var(--d) ease-in-out infinite; }
+.motion-row .m-handle { animation: m-row-handle var(--d) ease-in-out infinite; }
+.motion-row .m-chain { animation: m-row-chain var(--d) ease-in-out infinite; }
+.motion-row .m-spin { animation: m-orbit 1.2s linear infinite; }
+
+.motion-pedal { --d: 1s; }
+.motion-pedal.is-fast { --d: 0.55s; }
+.motion-pedal.is-slow { --d: 1.6s; }
+.motion-pedal .m-a { animation: m-orbit var(--d) linear infinite; }
+
+/* Legs */
+.motion-swing .m-a { animation: m-swing 1.3s ease-in-out infinite alternate; }
+.motion-swing.is-high .m-a { animation: m-kick 1.1s ease-in-out infinite alternate; }
+
+.motion-press .m-a { animation: m-press 1.8s ease-in-out infinite; }
+.motion-press.is-small .m-a { animation: m-press-small 1.2s ease-in-out infinite; }
+
+.motion-lunge .m-a { animation: m-lunge 2.6s ease-in-out infinite; }
+.motion-step .m-a { animation: m-step 2.8s ease-in-out infinite; }
+.motion-shift .m-a { animation: m-shift 1.8s ease-in-out infinite; }
+
+.motion-hopside .m-a { animation: m-hopside 1.6s ease-in-out infinite; }
+.motion-hopside .m-shadow { animation: m-hopside-shadow 1.6s ease-in-out infinite; transform-origin: 100px 113px; }
+
+.motion-jump .m-a { animation: m-jump 1.5s ease-in-out infinite; }
+.motion-jump .m-shadow { animation: m-jump-shadow 1.5s ease-in-out infinite; transform-origin: 100px 113px; }
+.motion-jump.is-small .m-a { animation: m-pogo 0.5s ease-in-out infinite; }
+.motion-jump.is-small .m-shadow { animation: m-pogo-shadow 0.5s ease-in-out infinite; }
+
+.motion-hinge .m-a { animation: m-hinge 2.6s ease-in-out infinite; }
+.motion-bridge .m-a { animation: m-bridge 2.6s ease-in-out infinite; }
+.motion-bridge .m-b { animation: m-bridge-hips 2.6s ease-in-out infinite; }
+
+.motion-clam { --d: 2s; }
+.motion-clam.is-slow { --d: 4.5s; }
+.motion-clam .m-a { animation: m-clam var(--d) ease-in-out infinite; }
+
+.motion-balance .m-a { animation: m-wobble 2.4s ease-in-out infinite alternate; }
+.motion-balance.is-wide .m-a { animation: m-sway 3.2s ease-in-out infinite alternate; }
+
+/* Floor */
+.motion-arch { --d: 3s; }
+.motion-arch.is-slow { --d: 5s; }
+.motion-arch .m-a { animation: m-arch var(--d) ease-in-out infinite alternate; }
+
+.motion-reach .m-a1 { animation: m-reach-a1 3s ease-in-out infinite; }
+.motion-reach .m-a2 { animation: m-reach-a2 3s ease-in-out infinite; }
+.motion-reach .m-b1 { animation: m-reach-b1 3s ease-in-out infinite; }
+.motion-reach .m-b2 { animation: m-reach-b2 3s ease-in-out infinite; }
+
+.motion-walkout .m-a { animation: m-walk-hand 4.4s ease-in-out infinite; }
+.motion-walkout .m-body { animation: m-walk-body 4.4s ease-in-out infinite; }
+
+/* Upper body */
+.motion-open { --d: 1.6s; }
+.motion-open.is-slow { --d: 4.5s; }
+.motion-open .m-a { animation: m-open-a var(--d) ease-in-out infinite alternate; }
+.motion-open .m-b { animation: m-open-b var(--d) ease-in-out infinite alternate; }
+
+.motion-lift .m-l { animation: m-lift-l 2s ease-in-out infinite alternate; }
+.motion-lift .m-r { animation: m-lift-r 2s ease-in-out infinite alternate; }
+.motion-ytw .m-l { animation: m-ytw-l 3.6s ease-in-out infinite; }
+.motion-ytw .m-r { animation: m-ytw-r 3.6s ease-in-out infinite; }
+
+.motion-hang .m-a { animation: m-hang 2s ease-in-out infinite; }
+.motion-hang .m-rod { animation: m-hang-rod 2s ease-in-out infinite; }
+
+/* Rotation and circles */
+.motion-circle { --d: 2.2s; }
+.motion-circle.is-small { --d: 1.3s; }
+.motion-circle.is-small .m-scale { transform: scale(0.6); }
+.motion-circle .m-a { animation: m-orbit var(--d) linear infinite; }
+
+.motion-twist { --d: 2s; }
+.motion-twist.is-slow { --d: 4.5s; }
+.motion-twist .m-a { animation: m-twist var(--d) ease-in-out infinite; }
+
+/* Stretches and recovery */
+.motion-hold .m-a { animation: m-breathe 4.5s ease-in-out infinite; transform-origin: 100px 70px; }
+.motion-hold .m-b { animation: m-breathe 4.5s ease-in-out -0.5s infinite; transform-origin: 100px 70px; }
+.motion-hold .m-c { animation: m-fade 4.5s ease-in-out -1s infinite; }
+
+.motion-stretch .m-bar-a { animation: m-stretch-bar 5s ease-in-out infinite; }
+.motion-stretch .m-a { animation: m-stretch-dot 5s ease-in-out infinite; }
+.motion-reachup .m-bar-a { animation: m-reachup-bar 5s ease-in-out infinite; }
+.motion-reachup .m-a { animation: m-reachup-dot 5s ease-in-out infinite; }
+
+.motion-fold .m-a { animation: m-fold 5s ease-in-out infinite; }
+
+.motion-roll .m-a { animation: m-roll-x 2.6s ease-in-out infinite alternate; }
+.motion-roll .m-b { animation: m-roll-spin 2.6s ease-in-out infinite alternate; }
+
+.motion-breathe .m-a { animation: m-box 16s linear infinite; }
+.motion-breathe .m-trail-1 { animation-delay: -15.6s; }
+.motion-breathe .m-trail-2 { animation-delay: -15.2s; }
+
+@keyframes m-lift {
+  0%, 55%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(6px, -28px); }
+}
+@keyframes m-run {
+  0% { transform: translate(-20px, 0); }
+  35% { transform: translate(2px, -24px); }
+  60% { transform: translate(20px, 0); }
+  100% { transform: translate(-20px, 0); }
+}
+@keyframes m-scroll {
+  to { stroke-dashoffset: 36; }
+}
+@keyframes m-jack-tl { to { transform: translate(-26px, -30px); } }
+@keyframes m-jack-tr { to { transform: translate(26px, -30px); } }
+@keyframes m-jack-bl { to { transform: translate(-24px, 0); } }
+@keyframes m-jack-br { to { transform: translate(24px, 0); } }
+@keyframes m-row-seat {
+  0%, 100% { transform: translateX(0); }
+  35% { transform: translateX(-40px); }
+  70% { transform: translateX(-20px); }
+}
+@keyframes m-row-handle {
+  0%, 100% { transform: translateX(0); }
+  35% { transform: translateX(-36px); }
+  70% { transform: translateX(-18px); }
+}
+@keyframes m-row-chain {
+  0%, 100% { transform: scaleX(0.44); }
+  35% { transform: scaleX(1); }
+  70% { transform: scaleX(0.72); }
+}
+@keyframes m-swing {
+  from { transform: rotate(-34deg); }
+  to { transform: rotate(34deg); }
+}
+@keyframes m-kick {
+  from { transform: rotate(24deg); }
+  to { transform: rotate(-100deg); }
+}
+@keyframes m-press {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(52px); }
+}
+@keyframes m-press-small {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(22px); }
+}
+@keyframes m-lunge {
+  0%, 100% { transform: translate(0, 0); }
+  40%, 60% { transform: translate(34px, 10px); }
+}
+@keyframes m-step {
+  0%, 100% { transform: translate(0, 0); }
+  22% { transform: translate(18px, -30px); }
+  40%, 60% { transform: translate(48px, -26px); }
+  78% { transform: translate(18px, -30px); }
+}
+@keyframes m-shift {
+  0%, 100% { transform: translate(-52px, 0); }
+  25% { transform: translate(0, -14px); }
+  50% { transform: translate(52px, 0); }
+  75% { transform: translate(0, -14px); }
+}
+@keyframes m-hopside {
+  0%, 12%, 100% { transform: translate(-48px, 0); }
+  35% { transform: translate(0, -32px); }
+  50%, 62% { transform: translate(48px, 0); }
+  85% { transform: translate(0, -32px); }
+}
+@keyframes m-hopside-shadow {
+  0%, 12%, 100% { transform: translateX(-48px); }
+  35% { transform: translateX(0) scaleX(0.5); }
+  50%, 62% { transform: translateX(48px); }
+  85% { transform: translateX(0) scaleX(0.5); }
+}
+@keyframes m-jump {
+  0%, 85%, 100% { transform: translateY(0); }
+  18% { transform: translateY(6px); }
+  45% { transform: translateY(-52px); }
+  70% { transform: translateY(6px); }
+}
+@keyframes m-jump-shadow {
+  0%, 85%, 100% { transform: scaleX(1); }
+  18%, 70% { transform: scaleX(1.1); }
+  45% { transform: scaleX(0.45); }
+}
+@keyframes m-pogo {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-18px); }
+}
+@keyframes m-pogo-shadow {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.7); }
+}
+@keyframes m-hinge {
+  0%, 100% { transform: rotate(0); }
+  40%, 60% { transform: rotate(76deg); }
+}
+@keyframes m-bridge {
+  0%, 100% { transform: scaleY(0.12); }
+  40%, 60% { transform: scaleY(1); }
+}
+@keyframes m-bridge-hips {
+  0%, 100% { transform: translateY(24.6px); }
+  40%, 60% { transform: translateY(0); }
+}
+@keyframes m-clam {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(-42deg); }
+}
+@keyframes m-wobble {
+  from { transform: rotate(-6deg); }
+  to { transform: rotate(6deg); }
+}
+@keyframes m-sway {
+  from { transform: rotate(-16deg); }
+  to { transform: rotate(16deg); }
+}
+@keyframes m-arch {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(-0.7); }
+}
+@keyframes m-reach-a1 {
+  0%, 50%, 100% { transform: translate(0, 0); }
+  18%, 32% { transform: translate(-30px, -14px); }
+}
+@keyframes m-reach-a2 {
+  0%, 50%, 100% { transform: translate(0, 0); }
+  18%, 32% { transform: translate(30px, 14px); }
+}
+@keyframes m-reach-b1 {
+  0%, 50%, 100% { transform: translate(0, 0); }
+  68%, 82% { transform: translate(30px, -14px); }
+}
+@keyframes m-reach-b2 {
+  0%, 50%, 100% { transform: translate(0, 0); }
+  68%, 82% { transform: translate(-30px, 14px); }
+}
+@keyframes m-walk-hand {
+  0%, 100% { transform: translate(0, 0); }
+  7%, 93% { transform: translate(12px, -10px); }
+  14%, 86% { transform: translate(24px, 0); }
+  21%, 79% { transform: translate(36px, -10px); }
+  28%, 72% { transform: translate(48px, 0); }
+  35%, 65% { transform: translate(60px, -10px); }
+  42%, 58% { transform: translate(72px, 0); }
+}
+@keyframes m-walk-body {
+  0%, 100% { transform: scaleX(1); }
+  7%, 93% { transform: scaleX(1.86); }
+  14%, 86% { transform: scaleX(2.71); }
+  21%, 79% { transform: scaleX(3.57); }
+  28%, 72% { transform: scaleX(4.43); }
+  35%, 65% { transform: scaleX(5.29); }
+  42%, 58% { transform: scaleX(6.14); }
+}
+@keyframes m-open-a {
+  to { transform: translateX(-50px); }
+}
+@keyframes m-open-b {
+  to { transform: translateX(50px); }
+}
+@keyframes m-lift-l {
+  from { transform: rotate(18deg); }
+  to { transform: rotate(90deg); }
+}
+@keyframes m-lift-r {
+  from { transform: rotate(-18deg); }
+  to { transform: rotate(-90deg); }
+}
+@keyframes m-ytw-l {
+  0%, 18%, 100% { transform: rotate(140deg); }
+  33%, 51% { transform: rotate(90deg); }
+  66%, 84% { transform: rotate(50deg); }
+}
+@keyframes m-ytw-r {
+  0%, 18%, 100% { transform: rotate(-140deg); }
+  33%, 51% { transform: rotate(-90deg); }
+  66%, 84% { transform: rotate(-50deg); }
+}
+@keyframes m-hang {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes m-hang-rod {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.86); }
+}
+@keyframes m-orbit {
+  to { transform: rotate(360deg); }
+}
+@keyframes m-twist {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.14); }
+}
+@keyframes m-breathe {
+  0%, 100% { transform: scale(0.82); }
+  50% { transform: scale(1.06); }
+}
+@keyframes m-fade {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.9; }
+}
+@keyframes m-stretch-bar {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(1.32); }
+}
+@keyframes m-stretch-dot {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(18px); }
+}
+@keyframes m-reachup-bar {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.24); }
+}
+@keyframes m-reachup-dot {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+@keyframes m-fold {
+  0%, 100% { transform: rotate(-40deg); }
+  50% { transform: rotate(-10deg); }
+}
+@keyframes m-roll-x {
+  from { transform: translateX(-40px); }
+  to { transform: translateX(40px); }
+}
+@keyframes m-roll-spin {
+  from { transform: rotate(-164deg); }
+  to { transform: rotate(164deg); }
+}
+@keyframes m-box {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(68px, 0); }
+  50% { transform: translate(68px, 68px); }
+  75% { transform: translate(0, 68px); }
 }
 
 /* ---------- Perimeter progress (wireframe 9) ---------- */
@@ -702,7 +1050,7 @@ kbd {
 }
 
 .movement-stage .motion svg {
-  max-width: 224px;
+  max-width: 210px;
 }
 
 .movement-stage .count-block .motion {

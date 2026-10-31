@@ -6,16 +6,15 @@ import '@fontsource-variable/archivo/wdth.css';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/components.css';
-import { MotionDemo } from './components/MotionDemo';
-import { DEMOS, type DemoKind } from './components/motion/demos';
+import { MOTION_KINDS, MotionDemo, type MotionKind } from './components/MotionDemo';
 import { EXERCISES } from './data/exercises';
 
 const params = new URLSearchParams(location.search);
 const mode = params.get('mode') === 'cool' ? 'cool' : 'warm';
 const strip = params.has('strip');
 const only = params.get('only')?.split(',');
-const kinds = (Object.keys(DEMOS) as DemoKind[]).filter((k) => !only || only.includes(k));
-const usedBy = (k: DemoKind) => Object.values(EXERCISES).filter((e) => e.motion === k).map((e) => e.name);
+const kinds = MOTION_KINDS.filter((k) => !only || only.includes(k));
+const usedBy = (k: MotionKind) => Object.values(EXERCISES).filter((e) => e.motion === k).map((e) => e.name);
 
 // The app's styles pin the page to the window; this page scrolls normally.
 for (const el of [document.documentElement, document.body, document.getElementById('root')!]) {
@@ -23,7 +22,7 @@ for (const el of [document.documentElement, document.body, document.getElementBy
   el.style.height = 'auto';
 }
 
-const stage = (k: DemoKind, phase?: number) => (
+const stage = (k: MotionKind, phase?: number) => (
   <div
     key={phase ?? 'live'}
     data-phase={phase}

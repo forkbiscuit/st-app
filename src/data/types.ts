@@ -1,4 +1,4 @@
-import type { DemoKind } from '../components/motion/demos';
+import type { MotionKind } from '../components/MotionDemo';
 
 // Shared domain types. Everything the UI renders is derived from these.
 
@@ -30,8 +30,8 @@ export type Dose =
   /** Free-form sets (e.g. lifting warm-up sets). Completed by tapping Done. */
   | { kind: 'sets'; label: string; estSec: number };
 
-/** Which move demo plays for an exercise (src/components/motion/demos.ts). */
-export type MotionKind = DemoKind;
+/** Which move demo plays for an exercise (see MotionDemo). */
+export type { MotionKind };
 
 export interface Exercise {
   id: string;
