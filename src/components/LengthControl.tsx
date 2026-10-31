@@ -1,4 +1,4 @@
-import { useRef, type KeyboardEvent } from 'react';
+import { useRef, type CSSProperties, type KeyboardEvent } from 'react';
 import type { Length, Routine } from '../data/types';
 import { LENGTHS, minutesLabel, resolveRoutine, totalSeconds } from '../lib/routine';
 
@@ -9,6 +9,13 @@ import { LENGTHS, minutesLabel, resolveRoutine, totalSeconds } from '../lib/rout
  */
 export function LengthControl({ routine, onChange }: { routine: Routine; onChange: (l: Length) => void }) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const index = LENGTHS.findIndex((l) => l.id === routine.length);
+
+  // Each switch restarts the thumb's stretch by alternating between two
+  // identical keyframes (nothing plays on first render).
+  const moves = useRef({ count: 0, last: index });
+  if (moves.current.last !== index) moves.current = { count: moves.current.count + 1, last: index };
+  const stretch = moves.current.count === 0 ? undefined : moves.current.count % 2 ? 'thumb-stretch-a' : 'thumb-stretch-b';
 
   const onKeyDown = (e: KeyboardEvent, i: number) => {
     const delta = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
@@ -25,6 +32,12 @@ export function LengthControl({ routine, onChange }: { routine: Routine; onChang
         Session length
       </p>
       <div className="segmented" role="radiogroup" aria-labelledby="length-label">
+        {/* The highlight slides between lengths, stretching a little as it goes. */}
+        <span
+          className="segment-thumb"
+          aria-hidden="true"
+          style={{ '--i': index, animationName: stretch } as CSSProperties}
+        />
         {LENGTHS.map((l, i) => {
           const checked = routine.length === l.id;
           const secs = totalSeconds(resolveRoutine(routine, l.id));
