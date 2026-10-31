@@ -11,7 +11,7 @@ import type { ActivityId, Mode, Reminder } from '../data/types';
 
 export const isNative = Capacitor.isNativePlatform();
 
-/** One-time setup at launch: native-only CSS hooks and the screen's corner radius. */
+/** One-time setup at launch: native-only CSS hooks and no pinch zoom. */
 export function setupNative() {
   if (!isNative) return;
   const root = document.documentElement;
@@ -20,13 +20,6 @@ export function setupNative() {
   document
     .querySelector('meta[name=viewport]')
     ?.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
-  // Phones with a home indicator have rounded screen corners; the timer border follows them.
-  const probe = document.createElement('div');
-  probe.style.paddingBottom = 'env(safe-area-inset-bottom)';
-  document.body.append(probe);
-  const inset = parseFloat(getComputedStyle(probe).paddingBottom) || 0;
-  probe.remove();
-  if (inset > 0) root.style.setProperty('--screen-radius', '48px');
 }
 
 const quietly = (p: Promise<unknown>) => p.catch(() => undefined);

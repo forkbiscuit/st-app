@@ -645,9 +645,13 @@
   margin: 0 -8px;
 }
 
-/* The timer border follows the screen's corners (rounded on newer iPhones, set in native.ts). */
+/*
+  The timer border follows the screen's corners. Phones with a home indicator
+  have rounded corners (about 39–62pt); anything else is square. The min()
+  is 0 when there's no home-indicator inset and 56px when there is.
+*/
 .screen-body.player {
-  border-radius: var(--screen-radius, 0px);
+  border-radius: min(56px, var(--safe-bottom) * 1000);
 }
 
 .player-progress {
