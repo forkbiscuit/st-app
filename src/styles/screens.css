@@ -38,8 +38,10 @@
     var(--ink-1);
 }
 
-.mode-tile:hover {
-  box-shadow: inset 0 0 0 1px var(--accent-1);
+@media (hover: hover) {
+  .mode-tile:hover {
+    box-shadow: inset 0 0 0 1px var(--accent-1);
+  }
 }
 
 .mode-tile:active {
@@ -65,12 +67,16 @@
   font-variation-settings: 'wght' 700;
 }
 
-.mode-tile[data-mode='warm']:hover .mode-tile-arrow {
-  transform: translateY(-4px);
+@media (hover: hover) {
+  .mode-tile[data-mode='warm']:hover .mode-tile-arrow {
+    transform: translateY(-4px);
+  }
 }
 
-.mode-tile[data-mode='cool']:hover .mode-tile-arrow {
-  transform: translateY(4px);
+@media (hover: hover) {
+  .mode-tile[data-mode='cool']:hover .mode-tile-arrow {
+    transform: translateY(4px);
+  }
 }
 
 .mode-tile-label {
@@ -153,8 +159,10 @@
   border-radius: var(--r-row) 0 0 var(--r-row);
 }
 
-.saved-open:hover {
-  background: var(--ink-2);
+@media (hover: hover) {
+  .saved-open:hover {
+    background: var(--ink-2);
+  }
 }
 
 .saved-icon {
@@ -190,8 +198,10 @@
   box-shadow: inset 1px 0 0 var(--ink-3);
 }
 
-.saved-delete:hover {
-  color: var(--paper);
+@media (hover: hover) {
+  .saved-delete:hover {
+    color: var(--paper);
+  }
 }
 
 /* ---------- 2–3 Activity picker ---------- */
@@ -230,8 +240,10 @@
   color: var(--accent-text);
 }
 
-.activity-tile:hover {
-  box-shadow: inset 0 0 0 1px var(--ink-4);
+@media (hover: hover) {
+  .activity-tile:hover {
+    box-shadow: inset 0 0 0 1px var(--ink-4);
+  }
 }
 
 .activity-label {
@@ -393,9 +405,8 @@
 }
 
 /*
-  The selected length's highlight is one element that slides from segment to
-  segment (translate) and stretches as it travels (scale, restarted on each
-  switch from LengthControl). Width is one column: the inner width less the
+  The selected length's highlight is one element that glides from segment to
+  segment at a constant size. Width is one column: the inner width less the
   two 4px gaps, over three.
 */
 .segment-thumb {
@@ -408,21 +419,7 @@
   border-radius: 14px;
   background: var(--accent-gradient);
   translate: calc(var(--i) * (100% + 4px)) 0;
-  transition: translate 460ms cubic-bezier(0.3, 1.25, 0.4, 1);
-  animation-duration: 460ms;
-  animation-timing-function: ease-in-out;
-}
-
-@keyframes thumb-stretch-a {
-  40% {
-    scale: 1.1 0.9;
-  }
-}
-
-@keyframes thumb-stretch-b {
-  40% {
-    scale: 1.1 0.9;
-  }
+  transition: translate 380ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .segment {
@@ -432,15 +429,18 @@
   justify-content: center;
   min-height: 58px;
   border-radius: 14px;
-  transition: background 200ms ease, color 200ms ease;
+  /* Colour only: a fading background would sit on top of the arriving highlight. */
+  transition: color 200ms ease;
 }
 
 .segment-time {
   transition: color 200ms ease;
 }
 
-.segment:hover:not(.is-selected) {
-  background: var(--ink-2);
+@media (hover: hover) {
+  .segment:hover:not(.is-selected) {
+    background: var(--ink-2);
+  }
 }
 
 .segment-name {
@@ -529,8 +529,10 @@
   border-radius: var(--r-row) 0 0 var(--r-row);
 }
 
-.drag-handle:hover {
-  color: var(--paper);
+@media (hover: hover) {
+  .drag-handle:hover {
+    color: var(--paper);
+  }
 }
 
 .is-dragging .drag-handle {
@@ -548,8 +550,10 @@
   border-radius: 0 var(--r-row) var(--r-row) 0;
 }
 
-.move-toggle:hover .move-chevron {
-  color: var(--paper);
+@media (hover: hover) {
+  .move-toggle:hover .move-chevron {
+    color: var(--paper);
+  }
 }
 
 .move-num {
@@ -960,8 +964,10 @@
   font-size: var(--t-14);
 }
 
-.bookmark-toggle:hover {
-  background: var(--ink-2);
+@media (hover: hover) {
+  .bookmark-toggle:hover {
+    background: var(--ink-2);
+  }
 }
 
 .bookmark-toggle .icon {
@@ -1003,8 +1009,10 @@
   transition: box-shadow 160ms ease, background 200ms ease;
 }
 
-.thumb:hover {
-  box-shadow: inset 0 0 0 1px var(--ink-4);
+@media (hover: hover) {
+  .thumb:hover {
+    box-shadow: inset 0 0 0 1px var(--ink-4);
+  }
 }
 
 .thumb .icon {
@@ -1061,8 +1069,10 @@
   margin-left: -4px;
 }
 
-.chip:hover:not(.is-selected) {
-  background: var(--ink-2);
+@media (hover: hover) {
+  .chip:hover:not(.is-selected) {
+    background: var(--ink-2);
+  }
 }
 
 .chip.is-selected {
