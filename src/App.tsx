@@ -81,14 +81,15 @@ export default function App() {
   // Persist whenever bookmarks, the reminder or recent picks change (not on first load).
   // Only bookmark and reminder failures are reported: losing recent picks just
   // means the next routine might repeat a move.
-  const persisted = useRef({ saved: state.saved, reminder: state.reminder, recent: state.recent });
+  const persisted = useRef({ saved: state.saved, reminder: state.reminder, recent: state.recent, equipment: state.equipment });
   useEffect(() => {
     const prev = persisted.current;
-    if (prev.saved === state.saved && prev.reminder === state.reminder && prev.recent === state.recent) return;
+    const next = { saved: state.saved, reminder: state.reminder, recent: state.recent, equipment: state.equipment };
+    if ((Object.keys(next) as (keyof typeof next)[]).every((k) => prev[k] === next[k])) return;
     const userData = prev.saved !== state.saved || prev.reminder !== state.reminder;
-    persisted.current = { saved: state.saved, reminder: state.reminder, recent: state.recent };
-    if (!savePersisted(persisted.current) && userData) dispatch({ type: 'STORAGE_FAILED' });
-  }, [state.saved, state.reminder, state.recent]);
+    persisted.current = next;
+    if (!savePersisted(next) && userData) dispatch({ type: 'STORAGE_FAILED' });
+  }, [state.saved, state.reminder, state.recent, state.equipment]);
 
   useEffect(() => setSimulateStorageFailure(state.storageBlocked), [state.storageBlocked]);
 

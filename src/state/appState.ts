@@ -1,8 +1,10 @@
 import { ACTIVITY_BY_ID } from '../data/activities';
 import type {
   ActivityId,
+  Equipment,
   Feedback,
   FeedbackReason,
+  Kit,
   Length,
   Mode,
   Reminder,
@@ -10,7 +12,8 @@ import type {
   SavedRoutine,
 } from '../data/types';
 import { generateRoutine, type GenerateOptions } from '../lib/generate';
-import { resolveRoutine, routineTitle, type ResolvedStep } from '../lib/routine';
+import { kitOf, kitsFor, kitWords } from '../lib/equipment';
+import { LENGTHS, modeWord, resolveRoutine, routineTitle, stepsFor, type ResolvedStep } from '../lib/routine';
 import { loadPersisted } from './storage';
 
 // All app state lives in one reducer so every screen change is a named action.
@@ -62,6 +65,8 @@ export interface AppState {
   lastReasons: FeedbackReason[];
   /** Step ids from recent routines, per activity and mode, so the next one differs. */
   recent: Record<string, string[]>;
+  /** Equipment added per activity. None is assumed. */
+  equipment: Equipment;
   toast: Toast | null;
   undo: UndoSnapshot | null;
   /** Reviewer control: timers and loading run this many times faster. */
@@ -80,6 +85,8 @@ export type Action =
   | { type: 'OPEN_BOOKMARKS' }
   | { type: 'SET_LENGTH'; length: Length }
   | { type: 'REORDER'; visibleUids: string[] }
+  /** Equipment chosen for the open routine's activity; rebuilds the routine to use it. */
+  | { type: 'SET_EQUIPMENT'; kits: Kit[]; seed: number }
   | { type: 'REMOVE'; uid: string }
   | { type: 'RESTORE_ALL' }
   | { type: 'UNDO' }
@@ -128,6 +135,7 @@ export function initialState(): AppState {
     reasons: [],
     lastReasons: [],
     recent: persisted.recent,
+    equipment: persisted.equipment,
     toast: null,
     undo: null,
     speed: 1,
@@ -201,6 +209,7 @@ export function reducer(state: AppState, action: Action): AppState {
       if (!state.mode || !state.activity) return state;
       const routine = generateRoutine(state.activity, state.mode, 'standard', action.seed, {
         recent: state.recent[recentKey(state.activity, state.mode)],
+        kit: state.equipment[state.activity],
       });
       return {
         ...state,
@@ -231,6 +240,55 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'REORDER': {
       if (!state.routine) return state;
       return withRoutine(state, applyVisibleOrder(state.routine, action.visibleUids));
+    }
+
+    case 'SET_EQUIPMENT': {
+      const routine = state.routine;
+      if (!routine) return state;
+      const { activity, mode } = routine;
+      // The sheet only offers kit this routine can use; other kit for the activity is kept.
+      const offered = kitsFor(activity, mode);
+      const before = state.equipment[activity] ?? [];
+      const after = [...before.filter((k) => !offered.includes(k)), ...offered.filter((k) => action.kits.includes(k))];
+      const added = after.filter((k) => !before.includes(k));
+      const removed = before.filter((k) => !after.includes(k));
+      if (!added.length && !removed.length) return state;
+
+      // Rebuild with the same seed and settings, so only moves affected by the
+      // equipment change; keep this routine's id, its moves' uids and removals.
+      const gen = routine.gen ?? { seed: action.seed };
+      const rebuilt = generateRoutine(activity, mode, routine.length, gen.seed, { ...gen, kit: after, preferKit: added });
+      const old = new Map(routine.items.map((i) => [i.stepId, i]));
+      const next: Routine = {
+        ...routine,
+        gen: rebuilt.gen,
+        items: rebuilt.items.map((i) => {
+          const was = old.get(i.stepId);
+          return was ? { ...i, uid: was.uid, removed: was.removed } : { ...i, uid: `${routine.id}-${i.stepId}` };
+        }),
+      };
+
+      let message: string;
+      if (added.length) {
+        const shownBefore = resolveRoutine(routine).map((s) => s.step.id).join();
+        const shownAfter = resolveRoutine(next).map((s) => s.step.id).join();
+        const steps = new Map(stepsFor(activity, mode).map((s) => [s.id, s]));
+        const kitItems = next.items.filter((i) => added.includes(kitOf(steps.get(i.stepId)?.exercise ?? '') as Kit));
+        const firstTier = LENGTHS.find((l) => kitItems.some((i) => i.tier === l.id));
+        message = !firstTier
+          ? `Saved. No moves for your ${kitWords(added)} fit this ${modeWord(mode)}.`
+          : shownBefore !== shownAfter
+            ? `Added moves for your ${kitWords(added)}.`
+            : `Moves for your ${kitWords(added)} are in ${firstTier.label}.`;
+      } else {
+        message = `Took out moves that need a ${kitWords(removed)}.`;
+      }
+      return {
+        ...withRoutine({ ...state, equipment: { ...state.equipment, [activity]: after } }, next),
+        recent: remember(state.recent, next),
+        undo: null,
+        toast: toast(message),
+      };
     }
 
     case 'REMOVE': {
@@ -365,7 +423,7 @@ export function reducer(state: AppState, action: Action): AppState {
       // Feedback steers the next routine (stands in for a model).
       const { activity, mode } = state.routine;
       const reasons = state.lastReasons;
-      const opts: GenerateOptions = { recent: state.recent[recentKey(activity, mode)] };
+      const opts: GenerateOptions = { recent: state.recent[recentKey(activity, mode)], kit: state.equipment[activity] };
       const changes: string[] = [];
       let length = state.routine.length;
       const idx = LENGTH_ORDER.indexOf(length);
@@ -461,6 +519,7 @@ export function reducer(state: AppState, action: Action): AppState {
         saved: [],
         reminder: null,
         recent: {},
+        equipment: {},
         speed: state.speed,
         storageBlocked: state.storageBlocked,
       };

@@ -12,7 +12,7 @@ const list: Exercise[] = [
   { id: 'jog-easy', name: 'Easy jog', how: 'Jog at a pace you could chat at, with short, relaxed strides.', motion: 'stride' },
   { id: 'jog-spot', name: 'Jog on the spot', how: 'Jog in place, letting your heels come up towards your glutes. Lift your feet higher to make it harder.', motion: 'stride' },
   { id: 'jumping-jacks', name: 'Jumping jacks', how: 'Jump your feet out wide as your arms sweep overhead, then back in. Land softly.', motion: 'open' },
-  { id: 'row', name: 'Easy rowing machine', how: 'Row at a light, steady effort. Push with the legs first, then pull with the arms.', motion: 'stride', kit: 'rower' },
+  { id: 'row', name: 'Easy row', how: 'Row at a light, steady effort. Push with the legs first, then pull with the arms.', motion: 'stride', kit: 'rower' },
   { id: 'walk-cycle', name: 'Walking or easy cycling', how: 'Walk briskly or spin an easy gear on a bike.', motion: 'stride' },
   { id: 'arm-swings', name: 'Arm swings', how: 'Swing your arms open wide, then hug them across your chest. Keep it loose and rhythmic.', motion: 'open' },
 
@@ -155,15 +155,3 @@ const list: Exercise[] = [
 ];
 
 export const EXERCISES: Record<string, Exercise> = Object.fromEntries(list.map((e) => [e.id, e]));
-
-const KIT_NOTE: Record<string, string> = {
-  band: 'You’ll need a resistance band.',
-  bike: 'On the bike.',
-  rower: 'You’ll need a rowing machine, or swap for any easy cardio.',
-  roller: 'Optional: you’ll need a foam roller.',
-  ball: 'Optional: you’ll need a small ball.',
-  bar: 'You’ll need a pull-up bar.',
-};
-
-/** A short note about kit, or undefined if the exercise needs none. */
-export const kitNote = (e: Exercise) => (e.kit ? KIT_NOTE[e.kit] : undefined);

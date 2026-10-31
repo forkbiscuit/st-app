@@ -1,5 +1,5 @@
 import { ACTIVITY_BY_ID, isActivityId } from '../data/activities';
-import type { Length, Mode, Reminder, RoutineItem, SavedRoutine } from '../data/types';
+import type { Equipment, GenParams, Kit, Length, Mode, Reminder, RoutineItem, SavedRoutine } from '../data/types';
 
 // Saved routines, the mocked reminder and recent picks live in localStorage.
 // Every access is wrapped: private windows and blocked site data can throw,
@@ -15,9 +15,11 @@ export interface Persisted {
   reminder: Reminder | null;
   /** Step ids from recent routines, keyed `${activity}-${mode}`. */
   recent: Record<string, string[]>;
+  /** Equipment added per activity. */
+  equipment: Equipment;
 }
 
-const empty = (): Persisted => ({ saved: [], reminder: null, recent: {} });
+const empty = (): Persisted => ({ saved: [], reminder: null, recent: {}, equipment: {} });
 
 /** Reviewer control: makes every write fail so the save error state can be seen. */
 let simulateFailure = false;
@@ -26,6 +28,28 @@ export function setSimulateStorageFailure(on: boolean) {
 }
 
 const MODES: Mode[] = ['warm', 'cool'];
+const KITS: Kit[] = ['band', 'roller', 'ball', 'bar', 'rower', 'bike'];
+const isStringList = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === 'string');
+
+function cleanGen(raw: unknown): GenParams | undefined {
+  if (!isObject(raw) || typeof raw.seed !== 'number') return undefined;
+  return {
+    seed: raw.seed,
+    recent: isStringList(raw.recent) ? raw.recent : undefined,
+    allNew: raw.allNew === true || undefined,
+    maxLevel: raw.maxLevel === 1 || raw.maxLevel === 2 || raw.maxLevel === 3 ? raw.maxLevel : undefined,
+    harder: raw.harder === true || undefined,
+  };
+}
+
+function cleanEquipment(raw: unknown): Equipment {
+  if (!isObject(raw)) return {};
+  const out: Equipment = {};
+  for (const [activity, kits] of Object.entries(raw)) {
+    if (isActivityId(activity) && Array.isArray(kits)) out[activity] = kits.filter((k): k is Kit => KITS.includes(k));
+  }
+  return out;
+}
 const LENGTHS: Length[] = ['quick', 'standard', 'long'];
 const isMode = (m: unknown): m is Mode => MODES.includes(m as Mode);
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
@@ -49,6 +73,7 @@ function cleanSaved(raw: unknown): SavedRoutine | null {
     mode: raw.mode,
     length: LENGTHS.includes(raw.length as Length) ? (raw.length as Length) : 'standard',
     items,
+    gen: cleanGen(raw.gen),
     savedAt: typeof raw.savedAt === 'number' ? raw.savedAt : Date.now(),
   };
 }
@@ -79,6 +104,7 @@ export function loadPersisted(): Persisted {
         : [],
       reminder: cleanReminder(parsed.reminder),
       recent: cleanRecent(parsed.recent),
+      equipment: cleanEquipment(parsed.equipment),
     };
   } catch {
     return empty();

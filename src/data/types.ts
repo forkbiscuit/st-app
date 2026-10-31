@@ -99,13 +99,27 @@ export interface RoutineItem {
   tier: Length;
 }
 
+/** How a routine was generated, so it can be rebuilt the same way with different equipment. */
+export interface GenParams {
+  seed: number;
+  recent?: string[];
+  allNew?: boolean;
+  maxLevel?: 1 | 2 | 3;
+  harder?: boolean;
+}
+
 export interface Routine {
   id: string;
   mode: Mode;
   activity: ActivityId;
   length: Length;
   items: RoutineItem[];
+  /** Missing on routines saved before equipment existed. */
+  gen?: GenParams;
 }
+
+/** Equipment someone has said they have, per activity. Nothing is assumed. */
+export type Equipment = Partial<Record<ActivityId, Kit[]>>;
 
 export interface SavedRoutine extends Routine {
   savedAt: number;

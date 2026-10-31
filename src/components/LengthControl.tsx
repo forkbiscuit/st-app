@@ -1,4 +1,4 @@
-import { useRef, type CSSProperties, type KeyboardEvent } from 'react';
+import { useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import type { Length, Routine } from '../data/types';
 import { LENGTHS, minutesLabel, resolveRoutine, totalSeconds } from '../lib/routine';
 
@@ -7,7 +7,16 @@ import { LENGTHS, minutesLabel, resolveRoutine, totalSeconds } from '../lib/rout
  * labels show the real time each option produces for *this* routine,
  * including the user's reorders and removals.
  */
-export function LengthControl({ routine, onChange }: { routine: Routine; onChange: (l: Length) => void }) {
+export function LengthControl({
+  routine,
+  onChange,
+  extra,
+}: {
+  routine: Routine;
+  onChange: (l: Length) => void;
+  /** Sits at the end of the hint row (the equipment button). */
+  extra?: ReactNode;
+}) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const index = LENGTHS.findIndex((l) => l.id === routine.length);
 
@@ -52,7 +61,10 @@ export function LengthControl({ routine, onChange }: { routine: Routine; onChang
           );
         })}
       </div>
-      <p className="length-hint">{LENGTHS.find((l) => l.id === routine.length)?.hint}</p>
+      <div className="length-foot">
+        <p className="length-hint">{LENGTHS.find((l) => l.id === routine.length)?.hint}</p>
+        {extra}
+      </div>
     </div>
   );
 }

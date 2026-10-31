@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ACTIVITY_BY_ID } from '../data/activities';
 import { Button, IconButton } from '../components/Button';
+import { EquipmentSheet } from '../components/EquipmentSheet';
 import { Icon } from '../components/Icon';
 import { LengthControl } from '../components/LengthControl';
 import { RoutineList } from '../components/RoutineList';
 import { TopBar } from '../components/TopBar';
+import { KIT_NAME, kitsFor } from '../lib/equipment';
+import { newSeed } from '../lib/generate';
 import { hiddenByLength, minutesLabel, modeWord, resolveRoutine, totalSeconds } from '../lib/routine';
 import type { Action, AppState } from '../state/appState';
 
@@ -14,8 +17,18 @@ import type { Action, AppState } from '../state/appState';
  */
 export function RoutineScreen({ state, dispatch }: { state: AppState; dispatch: (a: Action) => void }) {
   const [startHint, setStartHint] = useState(false);
+  const [equipmentOpen, setEquipmentOpen] = useState(false);
+  const equipmentButton = useRef<HTMLButtonElement>(null);
   const routine = state.routine;
   if (!routine) return null;
+
+  // Equipment is offered only where this routine has moves that use it.
+  const offered = kitsFor(routine.activity, routine.mode);
+  const have = (state.equipment[routine.activity] ?? []).filter((k) => offered.includes(k));
+  const closeEquipment = () => {
+    setEquipmentOpen(false);
+    equipmentButton.current?.focus();
+  };
 
   const activity = ACTIVITY_BY_ID[routine.activity];
   const steps = resolveRoutine(routine);
@@ -60,7 +73,27 @@ export function RoutineScreen({ state, dispatch }: { state: AppState; dispatch: 
         </p>
       </div>
 
-      <LengthControl routine={routine} onChange={(length) => dispatch({ type: 'SET_LENGTH', length })} />
+      <LengthControl
+        routine={routine}
+        onChange={(length) => dispatch({ type: 'SET_LENGTH', length })}
+        extra={
+          offered.length > 0 && (
+            <button
+              ref={equipmentButton}
+              type="button"
+              className="text-btn equipment-btn"
+              aria-haspopup="dialog"
+              aria-label={have.length ? `Equipment: ${have.map((k) => KIT_NAME[k]).join(', ')}. Change` : undefined}
+              onClick={() => setEquipmentOpen(true)}
+            >
+              <Icon name={have.length ? 'check' : 'add'} />
+              <span className="equipment-btn-label">
+                {have.length ? `${KIT_NAME[have[0]]}${have.length > 1 ? ` +${have.length - 1}` : ''}` : 'Add equipment'}
+              </span>
+            </button>
+          )
+        }
+      />
 
       {/* On wide windows this is the right-hand column; the rest stays on the left. */}
       <section className="routine-moves" aria-label="Moves">
@@ -110,6 +143,19 @@ export function RoutineScreen({ state, dispatch }: { state: AppState; dispatch: 
       )}
       </div>
       </section>
+
+      {equipmentOpen && (
+        <EquipmentSheet
+          activity={routine.activity}
+          mode={routine.mode}
+          have={have}
+          onClose={closeEquipment}
+          onApply={(kits) => {
+            closeEquipment();
+            dispatch({ type: 'SET_EQUIPMENT', kits, seed: newSeed() });
+          }}
+        />
+      )}
 
       <div className="screen-actions routine-actions">
         {startHint && steps.length === 0 && (

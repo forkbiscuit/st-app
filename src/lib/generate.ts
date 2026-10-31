@@ -1,9 +1,14 @@
-import type { ActivityId, Length, Mode, Phase, Routine, RoutineItem, RoutineStep } from '../data/types';
+import type { ActivityId, GenParams, Kit, Length, Mode, Phase, Routine, RoutineItem, RoutineStep } from '../data/types';
+import { available, kitOf } from './equipment';
 import { stepsFor } from './routine';
 
 // Builds a routine from an activity's pool (src/data/activities.ts).
 // Deterministic for a given seed, so the reducer stays pure: the seed travels in
 // the action, and previewing the reducer (App.tsx) gives the same routine.
+//
+// Ties are broken by a score per move (seed + move id) rather than a shuffle,
+// so adding a move to the pool (equipment) doesn't reorder the others: the same
+// seed with a band added gives the same routine with a few band moves swapped in.
 
 /**
  * How many steps each phase gets, as cumulative counts for Quick / Standard / Long.
@@ -36,6 +41,10 @@ export interface GenerateOptions {
   maxLevel?: 1 | 2 | 3;
   /** Prefer harder steps when choosing between equals. */
   harder?: boolean;
+  /** Equipment added for this activity. Moves needing anything else are left out. */
+  kit?: Kit[];
+  /** Kit just added: its moves go first, so adding it visibly changes the routine. */
+  preferKit?: Kit[];
 }
 
 export const newSeed = () => Math.floor(Math.random() * 2 ** 31);
@@ -51,13 +60,16 @@ function random(seed: number) {
   };
 }
 
-function shuffle<T>(list: T[], rand: () => number): T[] {
-  const out = [...list];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
+/** A stable random number for this seed and move. */
+function scoreOf(seed: number, id: string): number {
+  let h = (2166136261 ^ seed) >>> 0;
+  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619);
+  return random(h)();
+}
+
+function compare(a: number[], b: number[]): number {
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i];
+  return 0;
 }
 
 const level = (s: RoutineStep) => s.level ?? 1;
@@ -69,8 +81,12 @@ export function generateRoutine(
   seed: number,
   opts: GenerateOptions = {},
 ): Routine {
-  const rand = random(seed);
-  const pool = stepsFor(activity, mode);
+  const have = new Set(available(activity, { [activity]: opts.kit ?? [] }));
+  const prefer = new Set(opts.preferKit ?? []);
+  const pool = stepsFor(activity, mode).filter((s) => {
+    const kit = kitOf(s.exercise);
+    return !kit || have.has(kit);
+  });
   const recent = new Set(opts.recent ?? []);
   const groups = new Set<string>();
   const exercises = new Set<string>();
@@ -90,23 +106,25 @@ export function generateRoutine(
       candidates = candidates.filter((s) => level(s) <= cap);
     }
 
-    // Rank: shuffle for variety, then sort by preference (stable, so ties stay shuffled).
-    // Picks that fill Quick's slots prefer key steps, so every length covers the
-    // main muscles. The extra picks for Standard and Long are open to the whole
-    // pool, preferring moves not used recently. "All new" puts freshness first.
-    const rank = (s: RoutineStep, essential: boolean) => {
+    // Rank, then break ties by each move's score. Picks that fill Quick's slots
+    // prefer key steps, so every length covers the main muscles. The extra picks
+    // for Standard and Long are open to the whole pool, preferring moves not used
+    // recently. "All new" puts freshness first. Kit someone has just added comes
+    // before all of that: they asked for it, so it should show up.
+    const rank = (s: RoutineStep, essential: boolean): number[] => {
       const used = recent.has(s.id) ? 1 : 0;
       const notKey = isKey(s) ? 0 : 1;
-      const base = !essential ? used : opts.allNew ? used * 2 + notKey : notKey * 2 + used;
-      return opts.harder ? base * 4 - level(s) : base;
+      const notPreferred = prefer.has(kitOf(s.exercise) as Kit) ? 0 : 1;
+      const head = !essential ? [used] : opts.allNew ? [used, notKey] : [notKey, used];
+      return [notPreferred, ...head, opts.harder ? -level(s) : 0, scoreOf(seed, s.id)];
     };
 
     const chosen: RoutineStep[] = [];
-    let remaining = shuffle(candidates, rand);
+    let remaining = candidates;
     while (chosen.length < want[2]) {
       const essential = chosen.length < want[0];
       const next = [...remaining]
-        .sort((a, b) => rank(a, essential) - rank(b, essential))
+        .sort((a, b) => compare(rank(a, essential), rank(b, essential)))
         .find((s) => !exercises.has(s.exercise) && !(s.group && groups.has(s.group)));
       if (!next) break;
       chosen.push(next);
@@ -131,11 +149,14 @@ export function generateRoutine(
   );
 
   const id = `r${seed.toString(36)}`;
-  const items: RoutineItem[] = picked.map(({ step, tier }, i) => ({
-    uid: `${id}-${i}`,
+  // A uid per move (not per position), so a rebuilt routine keeps the uids of the
+  // moves it still has and the list can animate only what changed.
+  const items: RoutineItem[] = picked.map(({ step, tier }) => ({
+    uid: `${id}-${step.id}`,
     stepId: step.id,
     removed: false,
     tier,
   }));
-  return { id, activity, mode, length, items };
+  const gen: GenParams = { seed, recent: opts.recent, allNew: opts.allNew, maxLevel: opts.maxLevel, harder: opts.harder };
+  return { id, activity, mode, length, items, gen };
 }

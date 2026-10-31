@@ -461,9 +461,112 @@
   transition-delay: 140ms;
 }
 
+/* The hint for the chosen length, with the equipment button at the end of the row. */
+.length-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  min-height: 44px;
+}
+
 .length-hint {
-  margin-top: var(--s-2);
   font-size: 13px;
+  color: var(--muted);
+}
+
+.equipment-btn {
+  flex-shrink: 1;
+  min-width: 0;
+  margin-left: auto;
+  margin-right: -4px;
+}
+
+.equipment-btn .icon {
+  font-size: 20px;
+}
+
+.equipment-btn-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Add equipment sheet ---------- */
+
+.kit-list {
+  list-style: none;
+  margin: var(--s-5) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+
+.kit-option {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: var(--s-3);
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: var(--r-row);
+  background: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--ink-3);
+  cursor: pointer;
+  transition: box-shadow 160ms ease, background 200ms ease;
+}
+
+.kit-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.kit-option:has(input:focus-visible) {
+  outline: 2.5px solid var(--accent-text);
+  outline-offset: 3px;
+}
+
+.kit-check {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  box-shadow: inset 0 0 0 1.5px var(--ink-4);
+  color: transparent;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.kit-check .icon {
+  font-size: 20px;
+  font-variation-settings: 'wght' 700;
+}
+
+.kit-option.is-on {
+  background:
+    radial-gradient(120% 140% at 0% 50%, color-mix(in srgb, var(--accent-1) 16%, transparent) 0%, transparent 60%),
+    var(--ink-2);
+  box-shadow: inset 0 0 0 1.5px var(--accent-1);
+}
+
+.kit-option.is-on .kit-check {
+  background: var(--accent-gradient);
+  box-shadow: none;
+  color: var(--on-accent);
+}
+
+.kit-text {
+  display: grid;
+  min-width: 0;
+}
+
+.kit-name {
+  font-weight: 700;
+}
+
+.kit-moves {
+  font-size: var(--t-14);
   color: var(--muted);
 }
 
@@ -1190,6 +1293,10 @@
   }
 
   .length-hint {
+    display: none;
+  }
+
+  .length-foot:not(:has(.equipment-btn)) {
     display: none;
   }
 

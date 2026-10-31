@@ -1,5 +1,5 @@
 import { ACTIVITY_BY_ID } from '../data/activities';
-import { EXERCISES, kitNote } from '../data/exercises';
+import { EXERCISES } from '../data/exercises';
 import type { ActivityId, Dose, Exercise, Length, Mode, Routine, RoutineItem, RoutineStep } from '../data/types';
 
 /** Seconds allowed between movements when estimating total time. */
@@ -77,9 +77,9 @@ export function resolveRoutine(routine: Routine, length: Length = routine.length
   return out;
 }
 
-/** Kit needed, then any step note: "You’ll need a resistance band. One of each letter per rep." */
+/** Any note on the step, e.g. "Boots off first." */
 export function stepNote(s: ResolvedStep): string | undefined {
-  return [kitNote(s.exercise), s.step.note].filter(Boolean).join(' ') || undefined;
+  return s.step.note;
 }
 
 /** The next length up and how many more moves it would add, or null at Long. */
