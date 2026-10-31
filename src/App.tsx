@@ -98,6 +98,11 @@ export default function App() {
   }, [state.reminder]);
   useEffect(() => onReminderOpened((mode, activity) => dispatch({ type: 'OPEN_REMINDER', mode, activity })), []);
 
+  // Test-only autopilot for the iOS build check; compiled out of normal builds.
+  useEffect(() => {
+    if (import.meta.env.VITE_SIM_DEMO) import('./lib/simDemo').then((m) => m.runSimDemo(dispatch));
+  }, []);
+
   const reset = useCallback(() => {
     clearPersisted();
     dispatch({ type: 'RESET_DATA' });

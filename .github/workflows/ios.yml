@@ -20,7 +20,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # VITE_SIM_DEMO adds a test-only autopilot that walks to a running timer
+      # (src/lib/simDemo.ts). Normal builds leave it out.
       - run: npm run ios:sync
+        env:
+          VITE_SIM_DEMO: '1'
 
       - name: Use the newest Xcode on the runner
         run: |
@@ -48,8 +52,13 @@ jobs:
           xcrun simctl install "$UDID" build/Build/Products/Debug-iphonesimulator/App.app
           mkdir -p out
           xcrun simctl launch "$UDID" com.forkbiscuit.updown
-          sleep 12
-          xcrun simctl io "$UDID" screenshot out/home.png
+          # The autopilot moves on every few seconds (src/lib/simDemo.ts).
+          sleep 6;  xcrun simctl io "$UDID" screenshot out/1-home.png
+          sleep 5;  xcrun simctl io "$UDID" screenshot out/2-picker.png
+          sleep 6;  xcrun simctl io "$UDID" screenshot out/3-routine.png
+          sleep 5;  xcrun simctl io "$UDID" screenshot out/4-player.png
+          sleep 7;  xcrun simctl io "$UDID" screenshot out/5-timer.png
+          sleep 6;  xcrun simctl io "$UDID" screenshot out/6-timer-later.png
           xcrun simctl spawn "$UDID" log show --last 2m --style compact --predicate 'process == "App"' > out/app.log || true
           grep -iE "⚡️|error|exception" out/app.log | tail -60 || true
 
