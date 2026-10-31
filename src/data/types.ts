@@ -1,3 +1,5 @@
+import type { DemoKind } from '../components/motion/demos';
+
 // Shared domain types. Everything the UI renders is derived from these.
 
 export type Mode = 'warm' | 'cool';
@@ -28,17 +30,8 @@ export type Dose =
   /** Free-form sets (e.g. lifting warm-up sets). Completed by tapping Done. */
   | { kind: 'sets'; label: string; estSec: number };
 
-/** Abstract demo animation used in place of real exercise video. */
-export type MotionKind =
-  | 'stride'
-  | 'swing'
-  | 'press'
-  | 'shift'
-  | 'balance'
-  | 'circle'
-  | 'twist'
-  | 'open'
-  | 'hold';
+/** Which move demo plays for an exercise (src/components/motion/demos.ts). */
+export type MotionKind = DemoKind;
 
 export interface Exercise {
   id: string;

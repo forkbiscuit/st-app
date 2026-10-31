@@ -337,12 +337,15 @@
   }
 }
 
-/* ---------- Motion demo ---------- */
+/* ---------- Move demos (MotionDemo, motion/*.ts) ---------- */
 
 .motion {
   display: grid;
   place-items: center;
   width: 100%;
+  /* Limbs are soft and light; the head, hands and feet carry the colour. */
+  --limb: color-mix(in srgb, var(--paper) 80%, transparent);
+  --limb-far: color-mix(in srgb, var(--paper) 30%, transparent);
 }
 
 .motion svg {
@@ -352,10 +355,20 @@
   overflow: visible;
 }
 
-.motion g,
-.motion rect,
-.motion circle {
-  transform-box: view-box;
+.m-limb {
+  fill: none;
+  stroke: var(--limb);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.m-limb.is-far {
+  stroke: var(--limb-far);
+}
+
+.m-torso {
+  stroke-width: 7.5;
 }
 
 .m-ground {
@@ -364,80 +377,67 @@
   stroke-linecap: round;
 }
 
-.m-ring {
+.m-ground.is-dashed {
+  stroke-dasharray: 10 6;
+}
+
+.m-prop {
   fill: none;
-  stroke: var(--ink-3);
+  stroke: var(--ink-4);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.m-prop.is-bar {
+  stroke: var(--muted);
+  stroke-width: 3.5;
+}
+
+.m-box {
+  fill: var(--ink-2);
+  stroke: var(--ink-4);
   stroke-width: 2;
 }
 
-.m-pivot {
-  fill: var(--paper);
+.m-wheel circle,
+.m-wheel line {
+  stroke: var(--ink-4);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.m-wheel.is-accent circle {
+  stroke: none;
+}
+
+.m-wheel.is-accent line {
+  stroke: color-mix(in srgb, var(--on-accent) 45%, transparent);
+  stroke-width: 2;
+}
+
+/* Bands, and the rower's chain. */
+.m-band {
+  stroke: var(--accent-2);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: 0.85;
 }
 
 .m-ghost {
-  fill: var(--ink-3);
+  pointer-events: none;
 }
 
-.motion-stride .m-a { animation: m-lift 0.9s ease-in-out infinite; }
-.motion-stride .m-b { animation: m-lift 0.9s ease-in-out -0.45s infinite; }
-.motion-swing .m-a { animation: m-swing 1.3s ease-in-out infinite alternate; }
-.motion-press .m-a { animation: m-press 1.8s ease-in-out infinite; }
-.motion-shift .m-a { animation: m-shift 1.8s ease-in-out infinite; }
-.motion-balance .m-a { animation: m-wobble 2.4s ease-in-out infinite alternate; }
-.motion-circle .m-a { animation: m-orbit 2.2s linear infinite; }
-.motion-twist .m-a { animation: m-twist 2s ease-in-out infinite; }
-.motion-open .m-a { animation: m-open-a 1.6s ease-in-out infinite alternate; }
-.motion-open .m-b { animation: m-open-b 1.6s ease-in-out infinite alternate; }
-.motion-hold .m-a { animation: m-breathe 4.5s ease-in-out infinite; transform-origin: 100px 70px; }
-.motion-hold .m-b { animation: m-breathe 4.5s ease-in-out -0.5s infinite; transform-origin: 100px 70px; }
-.motion-hold .m-c { animation: m-fade 4.5s ease-in-out -1s infinite; }
-
-.motion.is-paused * {
-  animation-play-state: paused !important;
+.m-trail-1 {
+  opacity: 0.34;
 }
 
-@keyframes m-lift {
-  0%, 55%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(6px, -28px); }
+.m-trail-2 {
+  opacity: 0.18;
 }
-@keyframes m-swing {
-  from { transform: rotate(-34deg); }
-  to { transform: rotate(34deg); }
-}
-@keyframes m-press {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(52px); }
-}
-@keyframes m-shift {
-  0%, 100% { transform: translate(-52px, 0); }
-  25% { transform: translate(0, -14px); }
-  50% { transform: translate(52px, 0); }
-  75% { transform: translate(0, -14px); }
-}
-@keyframes m-wobble {
-  from { transform: rotate(-6deg); }
-  to { transform: rotate(6deg); }
-}
-@keyframes m-orbit {
-  to { transform: rotate(360deg); }
-}
-@keyframes m-twist {
-  0%, 100% { transform: scaleX(1); }
-  50% { transform: scaleX(0.14); }
-}
-@keyframes m-open-a {
-  to { transform: translateX(-50px); }
-}
-@keyframes m-open-b {
-  to { transform: translateX(50px); }
-}
-@keyframes m-breathe {
-  0%, 100% { transform: scale(0.82); }
-  50% { transform: scale(1.06); }
-}
-@keyframes m-fade {
-  0%, 100% { opacity: 0.25; }
-  50% { opacity: 0.9; }
+
+.m-trail-3 {
+  opacity: 0.08;
 }
 
 /* ---------- Perimeter progress (wireframe 9) ---------- */
@@ -702,7 +702,7 @@ kbd {
 }
 
 .movement-stage .motion svg {
-  max-width: 210px;
+  max-width: 224px;
 }
 
 .movement-stage .count-block .motion {

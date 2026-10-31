@@ -71,6 +71,7 @@ React 18 + TypeScript + Vite, one reducer, no router or state library. The iPhon
 | Equipment: what each routine can use, names, rules | `src/lib/equipment.ts`, `src/components/EquipmentSheet.tsx` |
 | iPhone-only behaviour: notifications, haptics, keep awake | `src/lib/native.ts` |
 | Screens and shared components | `src/screens/`, `src/components/` |
+| Move demos: the figure, its poses per move, the renderer | `src/components/motion/figure.ts`, `demos.ts`, `src/components/MotionDemo.tsx` |
 | Tokens and styles (phone first; wider windows in `layout.css`) | `src/styles/` |
 | iOS project (Xcode) and its config | `ios/`, `capacitor.config.ts` |
 | iOS build check on a GitHub Mac (simulator screenshot) | `.github/workflows/ios.yml` |
@@ -93,7 +94,7 @@ React 18 + TypeScript + Vite, one reducer, no router or state library. The iPhon
 
 - **Building a routine** is a short animation over the rule-based generator, not a model.
 - **Reminders** are notifications in the iPhone app; on the web they show on the home screen only.
-- **Demos** are abstract loops, not exercise video.
+- **Demos** are abstract figures, not exercise video. Each move family has its own (about 90, in `src/components/motion/demos.ts`): a few key poses that the figure tweens through, with knees and elbows solved so limbs keep their length. `npm run dev` then `/demos.html` shows them all side by side.
 - **Storage** is on the device (browser or app); there are no accounts or sync.
 - **Accessibility:** full keyboard use, 8:1+ text contrast, visible focus, announced side switches, reduced motion respected. The countdown isn't read every second, and touch reordering needs the handle.
 
